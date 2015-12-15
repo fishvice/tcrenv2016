@@ -3,6 +3,10 @@
 
 
 
+This space will host the nitty gritty part of the upcoming ICES training course in R.
+
+* Information on registration can be found on the [ICES webpages](http://ices.dk/news-and-events/Training/Pages/R-environment.aspx)
+* The introctuction to the course was provided as [“ICES news”](http://ices.dk/news-and-events/news-archive/news/Pages/Learning-the-language-of-R.aspx)
 
 ## Dates and venues
 ___
