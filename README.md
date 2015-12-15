@@ -1,5 +1,7 @@
 # TCRENV 2016
-___
+
+
+
 ICES Training Course in the R ENVironment  
 
 ## Dates and venues
@@ -54,6 +56,114 @@ Tentative here means that the schedule will be subject to changes, but to only a
     - Version control (git) and social coding (www.github.com)
 
 > Daily routine: Each day will be split up into group discussion of the topics/assignments covered the previous day, introduction lectures of the day's topics followed by practical assignments. Emphasis will be put on cooperative work and code sharing (including difficulties/stumbling blocks) among participants.
+
+## Examples of what we may do
+
+### ICES stocks - mortality trends
+
+
+```r
+# devtools::install_github("einarhjorleifsson\wices")
+library(wices)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+library(RColorBrewer)
+library(ggplot2)
+```
+
+Get list of stock names available in year 2015 and create a loop to get all the stock summary data from ices.dk via the [ICES standard graph webservice API](http://standardgraphs.ices.dk/standardgraphswebservices.asmx):
+
+```r
+stocks <- wices::get_list_stock(year = 2015) %>% 
+  filter(Status == "Published",
+         !FishStockName %in% c("lin-icel","tur-nsea"),
+         SpeciesName != "Mallotus villosus")
+
+rby <- NULL
+for (i in c(1:nrow(stocks))) {
+  x <- wices::get_summary_table(stocks$FishStockName[i], year = 2015)
+  rby <- bind_rows(rby,x)
+}
+```
+
+Some minor "cleaning":
+
+```r
+rby <- 
+  rby %>% 
+  filter(Year <= 2015) %>% 
+  mutate(F = ifelse(Year == 2015, NA, F)) %>% 
+  left_join(stocks)
+```
+
+
+
+
+
+A boxplot of mortality trends with individual values superimposed:
+
+```r
+rby %>% 
+  ggplot(aes(factor(Year), F)) +
+  theme_bw() +
+  geom_boxplot(fill = "blue", alpha = 0.4) +
+  geom_jitter(col = "red", size = 2, alpha = 0.3) +
+  coord_cartesian(ylim = c(0,1)) +
+  scale_x_discrete(breaks = seq(1950, 2010, by = 10)) +
+  labs(x = NULL, y = "Fishing mortality")
+```
+
+![](README_files/figure-html/unnamed-chunk-6-1.png) 
+
+Trends by "major" species:
+
+```r
+rby %>% 
+  filter(SpeciesName %in% c("Clupea harengus",
+                            "Gadus morhua",
+                            "Melanogrammus aeglefinus",
+                            "Pleuronectes platessa",
+                            "Pollachius virens",
+                            "Solea solea")) %>% 
+  ggplot(aes(Year, F)) +
+  theme_bw() +
+  geom_hline(yintercept = 0.2, col = "yellow") +
+  geom_line(aes(group = FishStockName), col = "red", alpha = 0.3) +
+  geom_point(alpha = 0.2, col = "red") +
+  stat_smooth() +
+  facet_wrap(~ SpeciesName, scale = "free_y") +
+  coord_cartesian(ylim = c(0,1.5)) +
+  labs(x = NULL, y = NULL, title = "Fishing mortality trends in different species")
+```
+
+![](README_files/figure-html/unnamed-chunk-7-1.png) 
+
+### Survey indices at age "brought to live"
+
+
+```r
+PAIRED <- rep(brewer.pal(12,"Paired"),100)
+survey <- readr::read_csv("http://data.hafro.is/assmt/2015/cod/smb.csv") %>% 
+  gather(age, oU, -Year) %>% 
+  mutate(age = as.integer(as.character(age)),
+         yc = Year - age) %>% 
+  filter(age %in% 2:10)
+n <- length(unique(survey$yc))
+ggplot(survey,aes(Year,oU,fill=factor(yc))) +
+  theme_bw() +
+  geom_bar(stat="identity") + 
+  scale_fill_manual(values=PAIRED[1:n])  + 
+  theme(legend.position = "none") +
+  labs(X = NULL, y = NULL, title = "iCod: standardized spring survey indices by age. Colour indicate cohorts") +
+  facet_grid(age ~ ., scale="free_y") +
+  scale_y_continuous(breaks = c(3)) +
+  scale_x_continuous(breaks = seq(1985, 2015, by = 5))
+```
+
+![](README_files/figure-html/unnamed-chunk-8-1.png) 
+
+### More examples to come ...
 
 ## Context, objective and level
 ___
