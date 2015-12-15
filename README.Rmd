@@ -1,6 +1,13 @@
-# TCRENV 2016
+---
+title: "TCRENV 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
 
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 
 
@@ -61,8 +68,7 @@ Tentative here means that the schedule will be subject to changes, but to only a
 
 ### ICES stocks - mortality trends
 
-
-```r
+```{r, message = FALSE}
 # devtools::install_github("einarhjorleifsson\wices")
 library(wices)
 library(dplyr)
@@ -74,8 +80,7 @@ library(leaflet)
 ```
 
 Get list of stock names available in year 2015 and create a loop to get all the stock summary data from ices.dk via the [ICES standard graph webservice API](http://standardgraphs.ices.dk/standardgraphswebservices.asmx):
-
-```r
+```{r, eval = FALSE}
 stocks <- wices::get_list_stock(year = 2015) %>% 
   filter(Status == "Published",
          !FishStockName %in% c("lin-icel","tur-nsea"),
@@ -89,8 +94,7 @@ for (i in c(1:nrow(stocks))) {
 ```
 
 Some minor "cleaning":
-
-```r
+```{r, eval = FALSE}
 rby <- 
   rby %>% 
   filter(Year <= 2015) %>% 
@@ -98,41 +102,21 @@ rby <-
   left_join(stocks)
 ```
 
+```{r, echo = FALSE, eval = FALSE}
+save(rby, file = "data/ss.rda")
+```
 
-
-
+```{r, echo = FALSE, message = FALSE}
+attach("data/ss.rda")
+```
 
 A "glimpse" of what the table looks like:
-
-```r
+```{r}
 rby
 ```
 
-```
-## Source: local data frame [2,981 x 22]
-## 
-##     Year recruitment high_recruitment low_recruitment low_SSB   SSB
-##    (int)       (dbl)            (dbl)           (dbl)   (dbl) (dbl)
-## 1   1980           0               NA              NA    1.20  1.20
-## 2   1981           0               NA              NA    1.18  1.18
-## 3   1982           0               NA              NA    1.15  1.15
-## 4   1983           0               NA              NA    1.11  1.11
-## 5   1984           0               NA              NA    1.08  1.08
-## 6   1985           0               NA              NA    1.07  1.07
-## 7   1986           0               NA              NA    1.06  1.07
-## 8   1987           0               NA              NA    1.02  1.02
-## 9   1988           0               NA              NA    0.90  0.92
-## 10  1989           0               NA              NA    0.78  0.81
-## ..   ...         ...              ...             ...     ...   ...
-## Variables not shown: high_SSB (dbl), catches (dbl), landings (dbl),
-##   discards (dbl), low_F (dbl), F (dbl), high_F (dbl), fishstock (chr),
-##   AssessmentYear (int), key (int), .id (chr), FishStockName (chr),
-##   StockDescription (chr), Status (chr), SpeciesName (chr), EcoRegion (chr).
-```
-
 A boxplot of mortality trends with individual values superimposed:
-
-```r
+```{r ices_fmort, warning = FALSE}
 rby %>% 
   ggplot(aes(factor(Year), F)) +
   theme_bw() +
@@ -143,11 +127,8 @@ rby %>%
   labs(x = NULL, y = "Fishing mortality")
 ```
 
-![](README_files/figure-html/ices_fmort-1.png) 
-
 Trends by "major" species:
-
-```r
+```{r ices_fmort_mspecies, message = FALSE, warning = FALSE}
 rby %>% 
   filter(SpeciesName %in% c("Clupea harengus",
                             "Gadus morhua",
@@ -166,12 +147,9 @@ rby %>%
   labs(x = NULL, y = NULL, title = "Fishing mortality trends in different species")
 ```
 
-![](README_files/figure-html/ices_fmort_mspecies-1.png) 
-
 ### Survey indices at age "brought to live"
 
-
-```r
+```{r}
 PAIRED <- rep(brewer.pal(12,"Paired"),100)
 survey <- readr::read_csv("http://data.hafro.is/assmt/2015/cod/smb.csv") %>% 
   gather(age, index, -Year) %>% 
@@ -181,32 +159,12 @@ survey <- readr::read_csv("http://data.hafro.is/assmt/2015/cod/smb.csv") %>%
 ```
 
 A "glimpse" of the table:
-
-```r
+```{r}
 survey
 ```
 
-```
-## Source: local data frame [279 x 4]
-## 
-##     Year   age  index    yc
-##    (int) (int)  (dbl) (int)
-## 1   1985     2 110.48  1983
-## 2   1986     2  60.58  1984
-## 3   1987     2  28.29  1985
-## 4   1988     2   7.06  1986
-## 5   1989     2  16.40  1987
-## 6   1990     2  11.79  1988
-## 7   1991     2  16.02  1989
-## 8   1992     2  16.91  1990
-## 9   1993     2   4.77  1991
-## 10  1994     2  14.96  1992
-## ..   ...   ...    ...   ...
-```
-
 Making it colourful as well as graphical:
-
-```r
+```{r crayola}
 n <- length(unique(survey$yc))
 ggplot(survey,aes(Year,index,fill=factor(yc))) +
   theme_bw() +
@@ -218,8 +176,6 @@ ggplot(survey,aes(Year,index,fill=factor(yc))) +
   scale_y_continuous(breaks = c(3)) +
   scale_x_continuous(breaks = seq(1985, 2015, by = 5))
 ```
-
-![](README_files/figure-html/crayola-1.png) 
 
 ### More examples may be added ...
 
