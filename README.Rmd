@@ -183,12 +183,22 @@ ggplot(survey,aes(Year,index,fill=factor(yc))) +
 
 ### Shaking hands with DATRAS
 
-```{r nsibts, message = FALSE, warning = FALSE}
+Get station information ("hh" data) for "NS-IBTS", first quarter in 2015 via the ICES DATRAS webservice API and plot each tow trajectories:
+```{r message = FALSE, warning = FALSE}
 st <- wices::get_hh_data(survey = "NS-IBTS",
                          year = 2015,
                          quarter = 1) %>% 
   select(shootlat, shootlong, haullat, haullong)
 st$id <- 1:nrow(st)
+```
+
+Take a peek at the data:
+```{r, message = FALSE, warning = FALSE}
+head(st)
+```
+
+Plot the stuff:
+```{r nsibts, message = FALSE, warning = FALSE}
 p <- get_map(location = c(mean(st$shootlong), mean(st$shootlat)),
              zoom = 6,
              maptype = "satellite")
