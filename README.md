@@ -61,7 +61,7 @@ Tentative here means that the schedule will be subject to changes, but to only a
 
 > Daily routine: Each day will be split up into group discussion of the topics/assignments covered the previous day, introduction lectures of the day's topics followed by practical assignments. Emphasis will be put on cooperative work and code sharing (including difficulties/stumbling blocks) among participants.
 
-## Some simple examples of what we cover
+## Some simple examples of what we will cover
 
 ### ICES stocks - mortality trends
 
@@ -74,7 +74,7 @@ library(tidyr)
 library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
-library(leaflet)
+library(ggmap)
 ```
 
 Get list of stock names available in year 2015 and create a loop to get all the stock summary data from ices.dk via the [ICES standard graph webservice API](http://standardgraphs.ices.dk/standardgraphswebservices.asmx):
@@ -224,6 +224,36 @@ ggplot(survey,aes(Year,index,fill=factor(yc))) +
 ```
 
 ![](README_files/figure-html/crayola-1.png) 
+
+### Shaking hands with DATRAS
+
+
+```r
+st <- wices::get_hh_data(survey = "NS-IBTS",
+                         year = 2015,
+                         quarter = 1) %>% 
+  select(shootlat, shootlong, haullat, haullong)
+```
+
+```
+## xmlns: URI ices.dk.local/DATRAS is not absolute
+```
+
+```r
+st$id <- 1:nrow(st)
+p <- get_map(location = c(mean(st$shootlong), mean(st$shootlat)),
+             zoom = 6,
+             maptype = "satellite")
+ggmap(p) +
+  geom_segment(data = st, aes(x = shootlong,
+                              xend = haullong,
+                              y = shootlat,
+                              yend = haullat),
+               color = "white") +
+  labs(x = NULL, y = NULL)
+```
+
+![](README_files/figure-html/nsibts-1.png) 
 
 ### More examples may be added ...
 
