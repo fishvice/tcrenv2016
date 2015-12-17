@@ -174,14 +174,10 @@ rby %>%
 
 ### Survey indices at age "brought to live"
 
+Read table directly from the net:
 
 ```r
-PAIRED <- rep(brewer.pal(12,"Paired"),100)
-survey <- readr::read_csv("http://data.hafro.is/assmt/2015/cod/smb.csv") %>% 
-  gather(age, index, -Year) %>% 
-  mutate(age = as.integer(as.character(age)),
-         yc = Year - age) %>% 
-  filter(age %in% 2:10)
+survey <- readr::read_csv("http://data.hafro.is/assmt/2015/cod/smb.csv")
 ```
 
 A "glimpse" of the table:
@@ -191,26 +187,35 @@ survey
 ```
 
 ```
-## Source: local data frame [279 x 4]
+## Source: local data frame [31 x 11]
 ## 
-##     Year   age  index    yc
-##    (int) (int)  (dbl) (int)
-## 1   1985     2 110.48  1983
-## 2   1986     2  60.58  1984
-## 3   1987     2  28.29  1985
-## 4   1988     2   7.06  1986
-## 5   1989     2  16.40  1987
-## 6   1990     2  11.79  1988
-## 7   1991     2  16.02  1989
-## 8   1992     2  16.91  1990
-## 9   1993     2   4.77  1991
-## 10  1994     2  14.96  1992
-## ..   ...   ...    ...   ...
+##     Year     1      2      3      4     5     6     7     8     9    10
+##    (int) (dbl)  (dbl)  (dbl)  (dbl) (dbl) (dbl) (dbl) (dbl) (dbl) (dbl)
+## 1   1985 16.54 110.48  35.41  48.25 64.59 22.95 15.26  5.04  3.39  1.84
+## 2   1986 15.07  60.58  95.95  22.46 21.51 27.44  7.17  2.80  0.93  0.82
+## 3   1987  3.65  28.29 104.44  82.67 21.41 12.76 12.94  2.79  0.98  0.42
+## 4   1988  3.45   7.06  72.51 103.56 69.54  8.39  6.41  7.23  0.67  0.28
+## 5   1989  4.04  16.40  22.06  79.90 74.16 39.11  4.85  1.71  1.42  0.27
+## 6   1990  5.56  11.79  26.10  14.18 27.91 35.22 16.74  1.75  0.58  0.48
+## 7   1991  3.95  16.02  18.20  30.24 15.49 18.94 22.45  4.91  0.94  0.31
+## 8   1992  0.71  16.91  33.60  18.95 16.66  6.87  6.35  5.78  1.49  0.23
+## 9   1993  3.57   4.77  30.87  36.79 13.53 10.61  2.42  2.03  1.40  0.41
+## 10  1994 14.40  14.96   9.04  26.91 22.43  6.09  3.96  0.80  0.53  0.52
+## ..   ...   ...    ...    ...    ...   ...   ...   ...   ...   ...   ...
 ```
 
-Making it colourful as well as graphical:
+
+Making it graphical and "informical":
 
 ```r
+survey <-
+  survey %>% 
+  gather(age, index, -Year) %>% 
+  mutate(age = as.integer(as.character(age)),
+         yc = Year - age) %>% 
+  filter(age %in% 2:10)
+
+PAIRED <- rep(brewer.pal(12,"Paired"),100)
 n <- length(unique(survey$yc))
 ggplot(survey,aes(Year,index,fill=factor(yc))) +
   theme_bw() +
@@ -224,6 +229,8 @@ ggplot(survey,aes(Year,index,fill=factor(yc))) +
 ```
 
 ![](README_files/figure-html/crayola-1.png) 
+
+_The graph above contain a lot of detail stories. The bottom line, that explains the increase in the abundance indices of older fish with time, despite no increase in recruitment abuncance, is management action in reducing fishing mortality over this time period through TAC control_
 
 ### Shaking hands with [DATRAS](http://ices.dk/marine-data/data-portals/Pages/DATRAS.aspx)
 

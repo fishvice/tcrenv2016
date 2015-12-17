@@ -153,13 +153,9 @@ rby %>%
 
 ### Survey indices at age "brought to live"
 
+Read table directly from the net:
 ```{r}
-PAIRED <- rep(brewer.pal(12,"Paired"),100)
-survey <- readr::read_csv("http://data.hafro.is/assmt/2015/cod/smb.csv") %>% 
-  gather(age, index, -Year) %>% 
-  mutate(age = as.integer(as.character(age)),
-         yc = Year - age) %>% 
-  filter(age %in% 2:10)
+survey <- readr::read_csv("http://data.hafro.is/assmt/2015/cod/smb.csv")
 ```
 
 A "glimpse" of the table:
@@ -167,8 +163,17 @@ A "glimpse" of the table:
 survey
 ```
 
-Making it colourful as well as graphical:
+
+Making it graphical and "informical":
 ```{r crayola}
+survey <-
+  survey %>% 
+  gather(age, index, -Year) %>% 
+  mutate(age = as.integer(as.character(age)),
+         yc = Year - age) %>% 
+  filter(age %in% 2:10)
+
+PAIRED <- rep(brewer.pal(12,"Paired"),100)
 n <- length(unique(survey$yc))
 ggplot(survey,aes(Year,index,fill=factor(yc))) +
   theme_bw() +
@@ -180,6 +185,8 @@ ggplot(survey,aes(Year,index,fill=factor(yc))) +
   scale_y_continuous(breaks = c(3)) +
   scale_x_continuous(breaks = seq(1985, 2015, by = 5))
 ```
+
+_The graph above contain a lot of detail stories. The bottom line, that explains the increase in the abundance indices of older fish with time, despite no increase in recruitment abuncance, is management action in reducing fishing mortality over this time period through TAC control_
 
 ### Shaking hands with [DATRAS](http://ices.dk/marine-data/data-portals/Pages/DATRAS.aspx)
 
