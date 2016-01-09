@@ -218,6 +218,10 @@ ggmap(p) +
   labs(x = NULL, y = NULL)
 ```
 
+### Calculate survey biomass indices from scratch
+
+... centos test
+
 ### More examples may be added ...
 
 ## Context, objective and level
