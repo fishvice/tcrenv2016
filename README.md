@@ -61,7 +61,7 @@ Tentative here means that the schedule will be subject to changes, but to only a
 
 > Daily routine: Each day will be split up into group discussion of the topics/assignments covered the previous day, introduction lectures of the day's topics followed by practical assignments. Emphasis will be put on cooperative work and code sharing (including difficulties/stumbling blocks) among participants.
 
-## Some simple examples of what we will cover
+## Some examples of what we will cover
 
 ### ICES stocks - mortality trends
 
@@ -113,7 +113,7 @@ rby
 ```
 
 ```
-## Source: local data frame [2,981 x 22]
+## Source: local data frame [3,175 x 22]
 ## 
 ##     Year recruitment high_recruitment low_recruitment low_SSB   SSB
 ##    (int)       (dbl)            (dbl)           (dbl)   (dbl) (dbl)
@@ -131,7 +131,7 @@ rby
 ## Variables not shown: high_SSB (dbl), catches (dbl), landings (dbl),
 ##   discards (dbl), low_F (dbl), F (dbl), high_F (dbl), fishstock (chr),
 ##   AssessmentYear (int), key (int), .id (chr), FishStockName (chr),
-##   StockDescription (chr), Status (chr), SpeciesName (chr), EcoRegion (chr).
+##   StockDescription (chr), Status (chr), SpeciesName (chr), EcoRegion (chr)
 ```
 
 A boxplot of mortality trends with individual values superimposed:
@@ -283,6 +283,105 @@ ggmap(p) +
 ```
 
 ![](README_files/figure-html/nsibts-1.png) 
+
+### Calculate survey biomass indices from "raw" tables
+
+Lets calculate a biomass index from a bottom trawl survey. The case is to illustrate that one can achieve this by using only `dplyr`-verbs.
+
+First, read in some standard survey database tables (Icelandic in this case):
+
+```r
+Station     <- read.csv("http://www.hafro.is/~einarhj/data/tcrenv2016/Station.csv")
+Length      <- read.csv("http://www.hafro.is/~einarhj/data/tcrenv2016/Length.csv")
+Subsampling <- read.csv("http://www.hafro.is/~einarhj/data/tcrenv2016/Subsampling.csv")
+Stratas     <- read.csv("http://www.hafro.is/~einarhj/data/tcrenv2016/Stratas.csv")
+```
+
+Lets for now do this for one species:
+
+```r
+SPECIES <- 1                         # Cod
+```
+
+Some constants and restrictions of extremes:
+
+```r
+# constants
+std.towlength <- 4                                   # seamiles
+min.towlength <- std.towlength / 2
+max.towlength <- std.towlength * 2
+std.towwidth  <- 17                                  # meters
+area.swept    <- std.towlength * std.towwidth/1852   # square miles
+```
+
+The calculation:
+
+```r
+ss <-
+  Subsampling %>% 
+  filter(species %in% SPECIES) %>%
+  mutate(r = n.total/n.measured) %>% 
+  select(id, r)
+# filter the length measurements for species in question
+#   and summarise the counts
+d <- Length %>% 
+  filter(species == SPECIES) %>%
+  # a double precaution, in case length bins by sex
+  group_by(id, length) %>%
+  summarize(n = sum(n)) %>% 
+  ungroup() %>% 
+  left_join(ss, by="id") %>%
+  mutate(n = n * r,
+         b = n * 0.01 * length^3) %>% 
+  select(-r) %>% 
+  # summarise the abundance and biomass measured at each station
+  group_by(id) %>% 
+  summarise(n = sum(n),
+            b = sum(b)) %>% 
+  ungroup() %>% 
+  # join with the station table information
+  right_join(Station %>% select(id, date1, towlength, strata), by = "id") %>% 
+  # make assumptions about "extreme" tow lengths
+  mutate(towlength = ifelse(towlength < min.towlength, min.towlength, towlength),
+         towlength = ifelse(towlength > max.towlength, max.towlength, towlength),
+         towlength = ifelse(is.na(towlength),4, towlength),
+         year = lubridate::year(date1),
+         # standardize abundance to standard area swept (4 seamiles x 17 m /1852 m per mile)
+         #  units will be in abundance per square seamile
+         #   the ifelse function if for station were no fish was caught
+         n  = ifelse(is.na(n),0,n) / towlength  * std.towlength * std.towwidth/1852,
+         b  = ifelse(is.na(b),0,b) / towlength  * std.towlength * std.towwidth/1852) %>% 
+  select(-date1) %>% 
+  group_by(year, strata) %>%
+  summarise(N  = n(),             # number of tows
+            n_m  = mean(n),       # mean abundance per square mile within a strata
+            b_m  = mean(b)) %>%   # mean biomass   per square mile within a within a strata
+  ungroup() %>% 
+  left_join(Stratas %>% select(strata, rall.area), by = "strata") %>%
+  # group_by(strata, length) %>%
+  mutate(r  = rall.area/1.864^2 / area.swept,  # 
+         n     = n_m  * r,
+         b     = b_m  * r) %>% 
+  group_by(year) %>% 
+  summarise(n = sum(n),
+            b = sum(b))
+```
+
+And now for a little plot:
+
+```r
+d %>% 
+  ggplot(aes(x = year, y = b/10e3)) +
+  theme_bw() +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(1985, 2015, by = 5)) +
+  expand_limits(y = 0) +
+  labs(x = NULL, y = NULL, title = "Survey biomass indices of cod in Icelandic waters")
+```
+
+![](README_files/figure-html/icod-1.png) 
+
 
 ### More examples may be added ...
 
