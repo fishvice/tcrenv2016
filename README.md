@@ -2,11 +2,12 @@
 
 
 
-
 This space will host the nitty gritty part of the upcoming ICES training course in R.
 
 * Information on registration can be found on the [ICES webpages](http://ices.dk/news-and-events/Training/Pages/R-environment.aspx)
 * The introctuction to the course was provided as [“ICES news”](http://ices.dk/news-and-events/news-archive/news/Pages/Learning-the-language-of-R.aspx)
+
+Upfront and in the spirit of the course we would like to emphasise that the source code for the text you are now reading can be found on this webspace as [README.Rmd](https://raw.githubusercontent.com/fishvice/tcrenv2016/master/README.Rmd). If you have [RStudio](https://www.rstudio.com) already installed on your computer and some minimal experience in using it you should be able to regenerate this whole document on your local computer using the referred file. If you can not, do not hesitate to send an email to einar.hjorleifsson@gmail.com
 
 ## Dates and venues
 ___
@@ -61,13 +62,28 @@ Tentative here means that the schedule will be subject to changes, but to only a
 
 > Daily routine: Each day will be split up into group discussion of the topics/assignments covered the previous day, introduction lectures of the day's topics followed by practical assignments. Emphasis will be put on cooperative work and code sharing (including difficulties/stumbling blocks) among participants.
 
-## Some examples of what we will cover
+## Some examples of the flavour of the code we will use
+
+Most of the code below is based on functions from packages on [cran](https://cran.r-project.org). Only exception are functions used to accesss ICES webservices. These are aggregated in a developmental package `wices` that resides on [github](https://github.com/einarhjorleifsson/wices). The code use to install that package is the first line below.
+
+
+```r
+devtools::install_github("einarhjorleifsson/wices")
+```
+
+```
+## Downloading GitHub repo einarhjorleifsson/wices@master
+## Installing wices
+## '/usr/lib64/R/bin/R' --no-site-file --no-environ --no-save --no-restore  \
+##   CMD INSTALL  \
+##   '/tmp/RtmpwOzDtw/devtools1ac35ba04815/einarhjorleifsson-wices-37c3742'  \
+##   --library='/home/einarhj/r/x86_64/library' --install-tests
+```
 
 ### ICES stocks - mortality trends
 
 
 ```r
-# devtools::install_github("einarhjorleifsson\wices")
 library(wices)
 library(dplyr)
 library(tidyr)
@@ -424,4 +440,132 @@ ___
       - Bjarki is a statistician in the Fisheries Advisory Section of the Marine Research Institute, Reykjavík Iceland. He recently finished his phd in statistical methods related to stock assessment models. He has been a member of the Icelandic delegation to the scientific council of International whaling commission since 2010 and participated in various ICES working group meetings since 2013. R has been in his main working environment since 2004. 
   * Einar Hjörleifsson, Marine Research Institute, Iceland
       - Einar is a fisheries scientist in Fisheries Advisory Section of the Marine Research Institute, Reykjavík Iceland. He has been involved in various ICES works since 1996 that spans the whole spectrum from ACFM/ACOM membership up to working group participation. In the early 2000's he taught stock assessment at ICES with Dankert Skagen for three consequtive years. He has also been involved in the United Nation University Fisheries Training Program teaching stock assessment. R has been his primary working environment since 2009.
-      
+
+## Appendix
+
+
+```r
+devtools::session_info()
+```
+
+```
+## Session info --------------------------------------------------------------
+```
+
+```
+##  setting  value                       
+##  version  R version 3.2.3 (2015-12-10)
+##  system   x86_64, linux-gnu           
+##  ui       X11                         
+##  language (EN)                        
+##  collate  is_IS.UTF-8                 
+##  tz       Atlantic/Reykjavik          
+##  date     2016-01-12
+```
+
+```
+## Packages ------------------------------------------------------------------
+```
+
+```
+##  package      * version    date      
+##  assertthat     0.1        2013-12-06
+##  colorspace     1.2-6      2015-03-11
+##  curl           0.9.4      2015-11-20
+##  DBI            0.3.1      2014-09-24
+##  devtools       1.9.1      2015-09-11
+##  digest         0.6.9      2016-01-08
+##  dplyr        * 0.4.3      2015-09-01
+##  evaluate       0.8        2015-09-18
+##  formatR        1.2.1      2015-09-18
+##  geosphere      1.5-1      2015-12-18
+##  ggmap        * 2.6        2015-12-19
+##  ggplot2      * 2.0.0      2015-12-18
+##  gtable         0.1.2      2012-12-05
+##  htmltools      0.3        2015-12-29
+##  httr           1.0.0      2015-06-25
+##  jpeg           0.1-8      2014-01-23
+##  knitr          1.11       2015-08-14
+##  labeling       0.3        2014-08-23
+##  lattice        0.20-33    2015-07-14
+##  lazyeval       0.1.10     2015-01-02
+##  lubridate      1.5.0      2015-12-03
+##  magrittr       1.5        2014-11-22
+##  mapproj        1.2-4      2015-08-03
+##  maps           3.0.2      2016-01-04
+##  Matrix         1.2-3      2015-11-28
+##  memoise        0.2.1      2014-04-22
+##  mgcv           1.8-9      2015-10-30
+##  munsell        0.4.2      2013-07-11
+##  nlme           3.1-122    2015-08-19
+##  plyr           1.8.3      2015-06-12
+##  png            0.1-7      2013-12-03
+##  proto          0.3-10     2012-12-22
+##  R6             2.1.1      2015-08-19
+##  RColorBrewer * 1.1-2      2014-12-07
+##  Rcpp           0.12.3     2016-01-10
+##  readr          0.2.2      2015-10-22
+##  reshape2     * 1.4.1      2014-12-06
+##  RgoogleMaps    1.2.0.7    2015-01-21
+##  rjson          0.2.15     2014-11-03
+##  RJSONIO        1.3-0      2014-07-28
+##  rmarkdown      0.9.2      2016-01-01
+##  scales         0.3.0      2015-08-25
+##  sp             1.2-1      2015-10-18
+##  stringi        1.0-1      2015-10-22
+##  stringr        1.0.0      2015-04-30
+##  tidyr        * 0.3.1      2015-09-10
+##  wices        * 0.0.2.9001 2016-01-12
+##  XML            3.98-1.3   2015-06-30
+##  yaml           2.1.13     2014-06-12
+##  source                                  
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.0)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)                          
+##  Github (einarhjorleifsson/wices@37c3742)
+##  CRAN (R 3.2.3)                          
+##  CRAN (R 3.2.3)
+```
