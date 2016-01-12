@@ -64,6 +64,8 @@ Tentative here means that the schedule will be subject to changes, but to only a
 
 ## Some examples of the flavour of the code we will use
 
+### Installation of needed libraries
+
 Most of the code below is based on functions from packages on [cran](https://cran.r-project.org). Only exception are functions used to accesss ICES webservices. These are aggregated in a developmental package `wices` that resides on [github](https://github.com/einarhjorleifsson/wices). The code use to install that package is the first line below.
 
 
@@ -71,16 +73,7 @@ Most of the code below is based on functions from packages on [cran](https://cra
 devtools::install_github("einarhjorleifsson/wices")
 ```
 
-```
-## Downloading GitHub repo einarhjorleifsson/wices@master
-## Installing wices
-## '/usr/lib64/R/bin/R' --no-site-file --no-environ --no-save --no-restore  \
-##   CMD INSTALL  \
-##   '/tmp/RtmpwOzDtw/devtools1ac35ba04815/einarhjorleifsson-wices-37c3742'  \
-##   --library='/home/einarhj/r/x86_64/library' --install-tests
-```
-
-### ICES stocks - mortality trends
+Loading of needed packages:
 
 
 ```r
@@ -92,6 +85,8 @@ library(RColorBrewer)
 library(ggplot2)
 library(ggmap)
 ```
+
+### ICES stocks - mortality trends
 
 Get list of stock names available in year 2015 and create a loop to get all the stock summary data from ices.dk via the [ICES standard graph webservice API](http://standardgraphs.ices.dk/standardgraphswebservices.asmx):
 
@@ -219,7 +214,6 @@ survey
 ## 10  1994 14.40  14.96   9.04  26.91 22.43  6.09  3.96  0.80  0.53  0.52
 ## ..   ...   ...    ...    ...    ...   ...   ...   ...   ...   ...   ...
 ```
-
 
 Making it graphical and "informical":
 

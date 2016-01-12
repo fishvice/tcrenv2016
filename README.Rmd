@@ -71,13 +71,15 @@ Tentative here means that the schedule will be subject to changes, but to only a
 
 ## Some examples of the flavour of the code we will use
 
+### Installation of needed libraries
+
 Most of the code below is based on functions from packages on [cran](https://cran.r-project.org). Only exception are functions used to accesss ICES webservices. These are aggregated in a developmental package `wices` that resides on [github](https://github.com/einarhjorleifsson/wices). The code use to install that package is the first line below.
 
-```{r, evale = FALSE}
+```{r, eval = FALSE}
 devtools::install_github("einarhjorleifsson/wices")
 ```
 
-### ICES stocks - mortality trends
+Loading of needed packages:
 
 ```{r, message = FALSE}
 library(wices)
@@ -88,6 +90,8 @@ library(RColorBrewer)
 library(ggplot2)
 library(ggmap)
 ```
+
+### ICES stocks - mortality trends
 
 Get list of stock names available in year 2015 and create a loop to get all the stock summary data from ices.dk via the [ICES standard graph webservice API](http://standardgraphs.ices.dk/standardgraphswebservices.asmx):
 ```{r, eval = FALSE}
@@ -168,7 +172,6 @@ A "glimpse" of the table:
 ```{r}
 survey
 ```
-
 
 Making it graphical and "informical":
 ```{r crayola}
