@@ -158,30 +158,8 @@ rby %>%
   labs(x = NULL, y = "Fishing mortality")
 ```
 
-![](README_files/figure-html/ices_fmort-1.png) 
+![](README_files/figure-html/ices_fmort-1.png)
 
-Trends by "major" species:
-
-```r
-rby %>% 
-  filter(SpeciesName %in% c("Clupea harengus",
-                            "Gadus morhua",
-                            "Melanogrammus aeglefinus",
-                            "Pleuronectes platessa",
-                            "Pollachius virens",
-                            "Solea solea")) %>% 
-  ggplot(aes(Year, F)) +
-  theme_bw() +
-  geom_hline(yintercept = 0.2, col = "yellow") +
-  geom_line(aes(group = FishStockName), col = "red", alpha = 0.3) +
-  geom_point(alpha = 0.2, col = "red") +
-  stat_smooth() +
-  facet_wrap(~ SpeciesName, scale = "free_y") +
-  coord_cartesian(ylim = c(0,1.5)) +
-  labs(x = NULL, y = NULL, title = "Fishing mortality trends in different species")
-```
-
-![](README_files/figure-html/ices_fmort_mspecies-1.png) 
 
 ### Survey indices at age "brought to live"
 
@@ -238,7 +216,7 @@ ggplot(survey,aes(Year,index,fill=factor(yc))) +
   scale_x_continuous(breaks = seq(1985, 2015, by = 5))
 ```
 
-![](README_files/figure-html/crayola-1.png) 
+![](README_files/figure-html/crayola-1.png)
 
 _The graph above contain a lot of detail stories. The bottom line, that explains the increase in the abundance indices of older fish with time, despite no increase in recruitment abuncance, is management action in reducing fishing mortality over this time period through TAC control_
 
@@ -269,12 +247,12 @@ head(st)
 
 ```
 ##   shootlat shootlong haullat haullong id
-## 1   57.536    -1.281  57.515   -1.306  1
-## 2   57.806    -0.893  57.776   -0.902  2
-## 3   58.046    -0.983  58.019   -0.961  3
-## 4   58.209    -3.011  58.187   -3.047  4
-## 5   58.087    -2.919  58.065   -2.952  5
-## 6   57.864    -3.055  57.863   -3.109  6
+## 1  53.4771    0.9003 53.4560   0.9262  1
+## 2  53.4504    1.5790 53.4174   1.5769  2
+## 3  52.7477    2.2847 52.7150   2.2954  3
+## 4  52.5109    1.9255 52.5209   1.9281  4
+## 5  52.5021    1.9296 52.5341   1.9334  5
+## 6  52.2605    1.8913 52.2944   1.8998  6
 ```
 
 Plot the stuff:
@@ -292,7 +270,7 @@ ggmap(p) +
   labs(x = NULL, y = NULL)
 ```
 
-![](README_files/figure-html/nsibts-1.png) 
+![](README_files/figure-html/nsibts-1.png)
 
 ### Calculate survey biomass indices from "raw" tables
 
@@ -390,7 +368,7 @@ d %>%
   labs(x = NULL, y = NULL, title = "Survey biomass indices of cod in Icelandic waters")
 ```
 
-![](README_files/figure-html/icod-1.png) 
+![](README_files/figure-html/icod-1.png)
 
 
 ### More examples may be added ...
@@ -454,7 +432,7 @@ devtools::session_info()
 ##  language (EN)                        
 ##  collate  is_IS.UTF-8                 
 ##  tz       Atlantic/Reykjavik          
-##  date     2016-01-12
+##  date     2016-02-01
 ```
 
 ```
@@ -473,13 +451,13 @@ devtools::session_info()
 ##  evaluate       0.8        2015-09-18
 ##  formatR        1.2.1      2015-09-18
 ##  geosphere      1.5-1      2015-12-18
-##  ggmap        * 2.6        2015-12-19
+##  ggmap        * 2.6.1      2016-01-23
 ##  ggplot2      * 2.0.0      2015-12-18
 ##  gtable         0.1.2      2012-12-05
 ##  htmltools      0.3        2015-12-29
 ##  httr           1.0.0      2015-06-25
 ##  jpeg           0.1-8      2014-01-23
-##  knitr          1.11       2015-08-14
+##  knitr          1.12.3     2016-01-22
 ##  labeling       0.3        2014-08-23
 ##  lattice        0.20-33    2015-07-14
 ##  lazyeval       0.1.10     2015-01-02
@@ -487,15 +465,12 @@ devtools::session_info()
 ##  magrittr       1.5        2014-11-22
 ##  mapproj        1.2-4      2015-08-03
 ##  maps           3.0.2      2016-01-04
-##  Matrix         1.2-3      2015-11-28
-##  memoise        0.2.1      2014-04-22
-##  mgcv           1.8-9      2015-10-30
+##  memoise        1.0.0      2016-01-29
 ##  munsell        0.4.2      2013-07-11
-##  nlme           3.1-122    2015-08-19
 ##  plyr           1.8.3      2015-06-12
 ##  png            0.1-7      2013-12-03
 ##  proto          0.3-10     2012-12-22
-##  R6             2.1.1      2015-08-19
+##  R6             2.1.2      2016-01-26
 ##  RColorBrewer * 1.1-2      2014-12-07
 ##  Rcpp           0.12.3     2016-01-10
 ##  readr          0.2.2      2015-10-22
@@ -509,7 +484,7 @@ devtools::session_info()
 ##  stringi        1.0-1      2015-10-22
 ##  stringr        1.0.0      2015-04-30
 ##  tidyr        * 0.3.1      2015-09-10
-##  wices        * 0.0.2.9001 2016-01-12
+##  wices        * 0.0.2.9001 2016-01-15
 ##  XML            3.98-1.3   2015-06-30
 ##  yaml           2.1.13     2014-06-12
 ##  source                                  
@@ -517,9 +492,6 @@ devtools::session_info()
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.0)                          
-##  CRAN (R 3.2.3)                          
-##  CRAN (R 3.2.3)                          
-##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          

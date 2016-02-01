@@ -141,25 +141,6 @@ rby %>%
   labs(x = NULL, y = "Fishing mortality")
 ```
 
-Trends by "major" species:
-```{r ices_fmort_mspecies, message = FALSE, warning = FALSE}
-rby %>% 
-  filter(SpeciesName %in% c("Clupea harengus",
-                            "Gadus morhua",
-                            "Melanogrammus aeglefinus",
-                            "Pleuronectes platessa",
-                            "Pollachius virens",
-                            "Solea solea")) %>% 
-  ggplot(aes(Year, F)) +
-  theme_bw() +
-  geom_hline(yintercept = 0.2, col = "yellow") +
-  geom_line(aes(group = FishStockName), col = "red", alpha = 0.3) +
-  geom_point(alpha = 0.2, col = "red") +
-  stat_smooth() +
-  facet_wrap(~ SpeciesName, scale = "free_y") +
-  coord_cartesian(ylim = c(0,1.5)) +
-  labs(x = NULL, y = NULL, title = "Fishing mortality trends in different species")
-```
 
 ### Survey indices at age "brought to live"
 
