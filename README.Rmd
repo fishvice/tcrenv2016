@@ -5,9 +5,15 @@ output:
     keep_md: yes
 ---
 
+# Notes to participants
+
+* 2016-02-20: A webpage were the course material is being compiled is currently located [here](http://www.hafro.is/~einarhj/education/tcrenv2016).
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# On this space
 
 This space will host the nitty gritty part of the upcoming ICES training course in R.
 

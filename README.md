@@ -1,6 +1,12 @@
 # TCRENV 2016
 
+# Notes to participants
 
+* 2016-02-20: A webpage were the course material is being compiled is currently located [here](http://www.hafro.is/~einarhj/education/tcrenv2016).
+
+
+
+# On this space
 
 This space will host the nitty gritty part of the upcoming ICES training course in R.
 
@@ -432,7 +438,7 @@ devtools::session_info()
 ##  language (EN)                        
 ##  collate  is_IS.UTF-8                 
 ##  tz       Atlantic/Reykjavik          
-##  date     2016-02-01
+##  date     2016-02-20
 ```
 
 ```
@@ -443,19 +449,19 @@ devtools::session_info()
 ##  package      * version    date      
 ##  assertthat     0.1        2013-12-06
 ##  colorspace     1.2-6      2015-03-11
-##  curl           0.9.4      2015-11-20
+##  curl           0.9.5      2016-01-23
 ##  DBI            0.3.1      2014-09-24
-##  devtools       1.9.1      2015-09-11
+##  devtools       1.10.0     2016-01-23
 ##  digest         0.6.9      2016-01-08
 ##  dplyr        * 0.4.3      2015-09-01
 ##  evaluate       0.8        2015-09-18
 ##  formatR        1.2.1      2015-09-18
 ##  geosphere      1.5-1      2015-12-18
 ##  ggmap        * 2.6.1      2016-01-23
-##  ggplot2      * 2.0.0      2015-12-18
-##  gtable         0.1.2      2012-12-05
-##  htmltools      0.3        2015-12-29
-##  httr           1.0.0      2015-06-25
+##  ggplot2      * 2.0.0.9001 2016-02-16
+##  gtable         0.1.2.9000 2016-02-16
+##  htmltools      0.3.3      2016-02-13
+##  httr           1.1.0      2016-01-28
 ##  jpeg           0.1-8      2014-01-23
 ##  knitr          1.12.3     2016-01-22
 ##  labeling       0.3        2014-08-23
@@ -466,7 +472,7 @@ devtools::session_info()
 ##  mapproj        1.2-4      2015-08-03
 ##  maps           3.0.2      2016-01-04
 ##  memoise        1.0.0      2016-01-29
-##  munsell        0.4.2      2013-07-11
+##  munsell        0.4.3      2016-02-13
 ##  plyr           1.8.3      2015-06-12
 ##  png            0.1-7      2013-12-03
 ##  proto          0.3-10     2012-12-22
@@ -478,12 +484,12 @@ devtools::session_info()
 ##  RgoogleMaps    1.2.0.7    2015-01-21
 ##  rjson          0.2.15     2014-11-03
 ##  RJSONIO        1.3-0      2014-07-28
-##  rmarkdown      0.9.2      2016-01-01
-##  scales         0.3.0      2015-08-25
-##  sp             1.2-1      2015-10-18
+##  rmarkdown      0.9.5      2016-02-13
+##  scales         0.3.0.9000 2016-02-16
+##  sp             1.2-2      2016-02-05
 ##  stringi        1.0-1      2015-10-22
 ##  stringr        1.0.0      2015-04-30
-##  tidyr        * 0.3.1      2015-09-10
+##  tidyr        * 0.4.1      2016-02-05
 ##  wices        * 0.0.2.9001 2016-01-15
 ##  XML            3.98-1.3   2015-06-30
 ##  yaml           2.1.13     2014-06-12
@@ -499,6 +505,9 @@ devtools::session_info()
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
+##  Github (hadley/ggplot2@025d198)         
+##  Github (hadley/gtable@6c7b22c)          
+##  Github (rstudio/htmltools@78c5072)      
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
@@ -522,11 +531,8 @@ devtools::session_info()
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
-##  CRAN (R 3.2.3)                          
-##  CRAN (R 3.2.3)                          
-##  CRAN (R 3.2.3)                          
-##  CRAN (R 3.2.3)                          
-##  CRAN (R 3.2.3)                          
+##  Github (rstudio/rmarkdown@b24f7e7)      
+##  Github (hadley/scales@ad60fbe)          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
 ##  CRAN (R 3.2.3)                          
