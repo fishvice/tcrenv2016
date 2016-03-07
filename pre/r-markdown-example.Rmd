@@ -1,0 +1,106 @@
+---
+title: "Markdown example"
+author: "Bjarki Þór Elvarsson"
+date: "February 28, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+```
+
+# R Markdown
+```{r readin}
+minke <- read.csv('data/minke.csv',skip = 3)
+```
+
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(minke)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+ggplot(minke,aes(age,length)) + geom_point()
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+## More control
+One can also use `eval = FALSE` to write code to the document that is not run:
+```{r noeval, eval=FALSE}
+## this plot is not created
+ggplot(minke,aes(maturity)) + geom_bar()
+```
+
+If one doesn't want to run certain lines:
+```{r partsrun, eval=c(1,3)}
+x <- minke$length
+plot(x)   ## this line doesn't run
+hist(x)
+```
+
+Similarly if one wants to show certain lines:
+```{r partshown, eval=TRUE, echo=c(1,3)}
+x <- minke$length
+ggplot(minke,aes(length)) + geom_histogram()
+mean(x)
+```
+
+Negative indexing is also allowed:
+```{r partshown2, eval=TRUE, echo=-2}
+x <- minke$age
+ggplot(minke,aes(age)) + geom_histogram()
+mean(x,na.rm=TRUE)
+```
+
+## Producing tables
+Tables can be produced using the kable command:
+```{r mtable}
+  minke %>% 
+  group_by(year) %>% 
+  summarise(num = n()) %>%
+  kable(caption='Num. whales caught by year')
+```
+
+
+## Figure control
+Figure width and height can be controlled from the chunk options
+```{r figdim, fig.height=3, fig.width=5}
+ggplot(minke,aes(stomach.volume)) + geom_histogram()
+```
+
+Figure alignment can also be set
+```{r figdim2, fig.height=3, fig.width=5, fig.align='right'}
+ggplot(minke,aes(stomach.volume)) + geom_histogram()
+```
+
+Captions can also be added:
+```{r figdim3, fig.height=3, fig.width=5,fig.cap='Histogram of stomach volume'}
+ggplot(minke,aes(stomach.volume)) + geom_histogram()
+```
+
+## More control of the output
+Rmarkdown is fairly diligent with giving you warnings and errors in the R code when encountered:
+```{r silent, message=FALSE,warning=FALSE,error=FALSE}
+ggplot(minke,aes(stomach.volume)) + geom_histogram()
+```
+
+## Formulas in Markdown
+For those that know LaTeX this is fairly straightforward. Inline formulas are written as $w=al^b$ and equations in a newline by 
+$$l = L_\infty*(1-e^{-k(a-t_0)})$$
+
+## Inline R output)
+One can also add output from R directly into text with: Numbers of minke whales are N = `r nrow(minke)`

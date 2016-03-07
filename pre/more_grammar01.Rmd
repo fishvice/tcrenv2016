@@ -1,0 +1,524 @@
+---
+title: "Applied grammar"
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE, 
+                      fig.width = 7.5,
+                      fig.height = 4.5,
+                      fig.show = "hold",
+                      collapse = TRUE,
+                      comment = "#>")
+options(dplyr.print_min = 4L, dplyr.print_max = 4L)
+```
+
+
+# Preamble
+
+* Here we want to enhance our skills in the use of grammar
+* To that end we use some survey data
+    * Icelandic groundfish survey
+* We will take a step-by-step approach
+* And end up with some catch per tow and mean abundance trends
+
+# The data
+
+For those that do not already know, procedure in a groundfish surveys goes quite often like this:
+
+* Measurements of the catch composition is often based on a subsample of the total catch
+* All species are identified and the total numbers/weight caught is recorded
+* Length measurement of a species is quite often based on a subsample, the size of the subsample being species dependent (for some species all fish are measured, for some none).
+* Age samples (something we are not going to worry about here) are quite often based on a smaller subsample than those only length measured.
+
+Given the above the data are often stored in separate tables. Here we have three tables.
+
+## Station table
+see: http://www.hafro.is/~einarhj/data/tcrenv2016/Station.csv
+
+Contains the following fields:
+
+  * __id__: Unique station id
+  * __date1__: Haul start time
+  * __date2__: Haul end time
+  * __lon1__ and __lon2__: Longitude of haul start and end location
+  * __lat1__ and __lat2__: Latitude of haul start end end location
+  * __towlengt__: Tow length in nautical miles
+  * __depth__: Mean bottom depths in meters
+  * __temperature__: Bottom temperature
+  * __strata__: The strata of the tow
+
+## Subsampling table
+see: http://www.hafro.is/~einarhj/data/tcrenv2016/Subsampling.csv
+
+Contains information about the subsampling at each station:
+
+  * __id__: Station id
+  * __species__: Species code
+  * __n.counted__: Number of fish that were counted
+  * __n.measured__: Number of fish that were measured
+  * __n.total__: Total number of fish caught
+
+## Length table:
+see: http://www.hafro.is/~einarhj/data/tcrenv2016/Length.csv
+
+Contains information about fish measured:
+
+  * __id__: Station id
+  * __species__: Species code
+  * __length__: Length class in centimeters
+  * __n__: Number of fish measured
+  * __sex__: Sex code, females (2) and males(1)
+  * __maturity__: Maturity code
+  
+# The code
+
+### Needed libraries
+
+```{r, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(geo)
+library(maps)
+library(mapdata)
+```
+
+### Recall the dplyr verbs (functions):
+
+* __filter__: keep rows matching criteria
+* __select__: pick columns by name
+* __arrange__: order the rows according to a variable
+* __mutate__: add new variables
+* __summarise__: reduce variables to values
+* __group_by__: Group data into rows
+* __left_join__: return all rows from x, and all columns from x and y
+* __right_join__: return all rows from y, and all columns from x and y
+
+## Read in the data
+
+The data needed are stored in three tables:
+```{r readdata}
+Station <- 
+  read.csv("http://www.hafro.is/~einarhj/data/tcrenv2016/Station.csv") %>%
+  mutate(year = lubridate::year(date1)) %>% 
+  select(id, year, towlength, lon = lon1, lat = lat1) %>% 
+  tbl_df()
+Subsampling <- 
+  read.csv("http://www.hafro.is/~einarhj/data/tcrenv2016/Subsampling.csv") %>% 
+  tbl_df()
+Length <- 
+  read.csv("http://www.hafro.is/~einarhj/data/tcrenv2016/Length.csv") %>% 
+  select(id, species, length, n) %>% 
+  tbl_df()
+```
+
+For the record we have the following table dimensions:
+```{r overview}
+data_frame(table = c("Station","Length","Subsampling"),
+           rows = c(nrow(Station),nrow(Length),nrow(Subsampling)),
+           columns = c(ncol(Station),ncol(Length),ncol(Subsampling)))
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+
+Familiarise yourself with / get an overview of the data. E.g. what is the year range the survey covers, how many stations per year, how many species are in the database, etc.
+
+</div>
+</div>
+
+## A. One year, one species
+
+#### 1. Pick a year and a species
+```{r pick}
+Species <- 1               # pick a species
+Year <- 2015               # pick a year
+```
+#### 2. Subset (filter) the station table
+```{r st}
+st <-
+  Station %>% 
+  filter(year %in% Year) %>% 
+  select(id, towlength, lon, lat) 
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+* How many stations in the year you picked?
+* Plot the towlength distribution
+* Plot the tow locations
+
+</div>
+</div>
+
+
+```{r st2, echo = FALSE, eval = FALSE}
+nrow(st)
+ggplot(st,aes(towlength)) + geom_histogram()
+ggplot(st,aes(lon, lat)) + geom_point() + coord_map()
+```
+
+Actually since this survey is currently ongoing you can follow its progression [here](http://www.hafro.is/skip/skip.html).
+
+#### 3. Subset (filter) the station table
+
+* The year is not stored in the `Length` dataframe.
+* So limit the data by using the station id in the `st` dataframe
+
+```{r le}
+le <-
+  Length %>% 
+  filter(id %in% st$id,
+         species == Species) %>% 
+  select(id, length, n)
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+* How many length measurements?
+* Plot the length distribution of fish measured
+
+</div>
+</div>
+
+```{r le2, echo = FALSE, eval = FALSE}
+sum(le$n)
+ggplot(le, aes(length, n)) + geom_bar(stat = "identity")
+p <- le %>% 
+  group_by(length) %>% 
+  summarise(n = sum(n)) %>% 
+  ggplot(aes(length, n)) +
+  scale_x_continuous(breaks = seq(0,140,10)) +
+  expand_limits(x = 0)
+p + geom_line()
+p + geom_polygon(fill = "grey")
+```
+
+#### 4. Get the subsampling information
+```{r, nu}
+ss <-
+  Subsampling %>% 
+  filter(id %in% st$id,
+         species == Species) %>% 
+  select(id, n.total, n.measured)
+```
+
+#### ... and calculate the raising factor
+```{r nu2}
+ss <-
+  ss %>% 
+  mutate(r = n.total/n.measured,
+         r = ifelse(is.na(r), 1, r)) %>%  # just in case
+  select(id, r)                           # only columns needed
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+* In how many cases (stations) were not all caught fish measured?
+
+</div>
+</div>
+
+```{r nu3, echo = FALSE, eval = FALSE}
+table(ss$r > 1)
+```
+
+#### 5. Raise the numbers measured
+
+* Here we join the subsampling table (ss) with the length table (le):
+```{r raise}
+le <- 
+  le %>% 
+  left_join(ss) %>% 
+  mutate(n = n * r)
+```
+* Filter the data such that you "see" the first few records were length was raised
+```{r raise2, echo = FALSE, eval = FALSE}
+le %>% filter(r > 1)
+```
+
+#### ... and calculate the weight
+```{r weight}
+le <-
+  le %>% 
+  mutate(wt = (n * 0.01 * length^3)/1000) # kilos
+```
+
+* Does the unit weight (kg) calculation make rough sense?
+
+```{r sense, echo = FALSE, eval = FALSE}
+le
+```
+
+#### 6. Calculate the catch per tow
+
+* Each id represents a tow, hence we can group by it and then summarise
+
+```{r pertow}
+d <-
+  le %>% 
+  group_by(id) %>%
+  summarize(n = sum(n),
+            wt = sum(wt))
+```
+
+#### 7. Join the calculation with the station table
+
+* We do this because the station table is the only place were the tow postion is recorded
+
+```{r stationjoin}
+d <-
+  st %>% 
+  left_join(d) %>% 
+  mutate(n = ifelse(is.na(n), 0, n)/1e3,
+         wt = ifelse(is.na(wt), 0, wt)/1e3)
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+* Why the ifelse mutate?
+* Compare the numbers of records of dataframe `d` and `st`.
+
+</div>
+</div>
+
+#### 8. Plot the results
+
+```{r stationjoin2, fig.width = 7.5, fig.height = 4.5}
+ggplot(d, aes(lon, lat)) + 
+  geom_point(aes(size = wt), alpha = 0.3, colour = "red") +
+  scale_size_area(max_size = 20, breaks = c(0, .1, .5, 1, 3)) +
+  labs(x = NULL, y = NULL, size = "tonnes/tow") +
+  coord_quickmap()
+```
+
+Here we would like to get some background to the map. Lets use the objects in the `mappackage`
+
+```{r}
+iceland <- map_data("worldHires", region = "iceland")
+ggplot(d, aes(lon, lat)) + 
+  theme_bw() +
+  geom_polygon(data=iceland, aes(long, lat, group=group), fill = "grey90") +
+  geom_point(aes(size = wt), alpha = 0.3, colour = "red") +
+  scale_size_area(max_size = 20, breaks = c(0, .1, .5, 1, 3)) +
+  labs(x = NULL, y = NULL, size = "tonnes/tow") +
+  coord_quickmap()
+```
+
+#### A condensed script
+
+```{r condensed, eval = FALSE}
+Species <- 1
+Year <- 2015
+st <-
+  Station %>% 
+  filter(year %in% Year) %>% 
+  select(id, towlength, lon, lat) 
+d <-
+  Length %>% 
+  filter(id %in% st$id, 
+         species %in% Species) %>% 
+  select(id, length, n) %>% 
+  left_join(Subsampling %>%                            # Note: here we do the raising
+              filter(species %in% Species) %>%         #  "inside" the left_join function
+              mutate(r = n.total/n.measured,
+                     r = ifelse(is.na(r), 1, r)) %>% 
+              select(id, r)) %>% 
+  mutate(n = n * r,
+         wt = (n * 0.01 * length^3)/1000) %>%     # kilos
+  group_by(id) %>%                                # summarise per tow
+  summarize(n = sum(n),
+            wt = sum(wt)) %>% 
+  right_join(st) %>%                              # join with station table
+  mutate(n = ifelse(is.na(n), 0, n)/1e3,          #  note the right_join
+         wt = ifelse(is.na(wt), 0, wt)/1e3)
+```
+
+#### Turning the script into a function
+
+We are likely going to use this script often, e.g. for different year or different species. So we turn the above into a function.
+
+* Note that the only thing changed here is the first line and the last line
+    * In the first line we put the Year and Species inside the function call
+    * In the last line we state explicitly return(d)
+```{r function1}
+catch_per_tow <- function(Year, Species) {
+  st <-
+    Station %>% 
+    filter(year %in% Year) %>% 
+    select(id, towlength, lon, lat) 
+  d <-
+    Length %>% 
+    filter(id %in% st$id,             # this ensures we only work with SMB length 
+           species %in% Species) %>% 
+    select(id, length, n) %>% 
+    left_join(Subsampling %>%
+                filter(species %in% Species) %>%
+                mutate(r = n.total/n.measured,
+                       r = ifelse(is.na(r), 1, r)) %>% 
+                select(id, r), by =  c("id")) %>% 
+    mutate(n = n * r,
+           wt = (n * 0.01 * length^3)/1000) %>%
+    group_by(id) %>%
+    summarize(n = sum(n),
+              wt = sum(wt)) %>% 
+    right_join(st, by = c("id")) %>%
+    mutate(n = ifelse(is.na(n), 0, n)/1e3,
+           wt = ifelse(is.na(wt), 0, wt)/1e3)
+  
+  return(d)
+}
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">You do</div>
+<div class="panel-body">
+
+1. Copy the above function code and put it a separate R-script.
+    * In RStudio: File -> New file ... -> R script
+2. Save the script as `catch_per_tow.R` in __your project R directory__.
+3. When/if you want to use the function you simply run first:
+
+```{r, eval = FALSE}
+source("R/catch_per_tow.R")
+```
+
+</div>
+</div>
+
+#### Using the function
+
+Here we pick another year and another species:
+```{r}
+catch_per_tow(Year = 2000, Species = 3) %>% 
+  ggplot(aes(lon, lat)) + 
+  theme_bw() +
+  geom_polygon(data=iceland, aes(long, lat, group=group), fill = "grey90") +
+  geom_point(aes(size = wt), alpha = 0.3, colour = "red") +
+  scale_size_area(max_size = 20, breaks = c(0, .1, .25, 0.5, 1)) +
+  labs(x = NULL, y = NULL, size = "tonnes/tow") +
+  coord_quickmap()
+```
+
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercises</div>
+<div class="panel-body">
+
+* Modify the function so that the catch per tow is expressed in standard towlength (4 nautical miles).
+    * You may want to provide this as a users option.
+
+</div>
+</div>
+
+#### Alternative representation
+
+In many cases the mean abundance in statistical rectancles is calculate and displayed. To achieve this we need to:
+
+* Asign each tow to statistical rectangle based on the lat and lons
+    * Here we use the `d2ir` function in the geo-package
+* Calculate the mean for each rectangle
+* Get the cental position of the rectangles
+    * Here we use the `ir2d` function in the geo-package
+    
+```{r}
+d <- catch_per_tow(Year = 2015, Species = 2) 
+d2 <- 
+  d %>% 
+  mutate(statrec = d2ir(lat, lon)) %>% 
+  group_by(statrec) %>% 
+  summarise(count = n(),
+            n = mean(n),
+            wt = mean(wt)) %>% 
+  mutate(lon = geo::ir2d(statrec)$lon,
+         lat = geo::ir2d(statrec)$lat)
+```
+
+And now for the plot (add here also number of station per rectangle and station location):
+```{r}
+ggplot(d2) +
+  theme_bw() +
+  geom_tile(aes(lon, lat, fill = wt)) +
+  geom_polygon(data=iceland, aes(long, lat, group=group), fill = "grey90") +
+  geom_text(aes(lon, lat, label = round(count,0)), size = 2) +
+  geom_point(data = d, aes(lon, lat), col = "blue", size = 0.05, alpha = 0.5) +
+  scale_fill_continuous(low = "yellow", high = "red") +
+  coord_quickmap(range(d$lon), range(d$lat)) +
+  labs(x = NULL, y = NULL, fill = "t/tow")
+```
+
+## B. Many years, one species
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercises</div>
+<div class="panel-body">
+
+* Modify the function such that it can handle multiple years.
+* Create a bubble plot of some selected years (e.g. every tenth year) for some species
+
+</div>
+</div>
+
+#### 1. Simple mean and median
+
+```{r, echo = FALSE}
+source("../R/catch_per_tow.R")
+```
+
+```{r}
+d <- catch_per_tow(Year = 1985:2015, Species = 1) %>% 
+  group_by(year) %>% 
+  summarise(Median = median(wt),
+            Mean = mean(wt)) %>% 
+  gather(key = Statistic, value = value, -year)
+d %>% 
+  ggplot(aes(year, value, colour = Statistic)) +
+  geom_point() +
+  geom_line()
+```
+
+#### ... are the trends the same?
+
+* Here we can simply standardize each statistics to the mean value
+
+```{r ex5}
+d %>% 
+  group_by(Statistic) %>% 
+  mutate(std.value = value/mean(value)) %>% 
+  ggplot(aes(year, std.value, colour = Statistic)) +
+  geom_line()
+```
+
+#### 2. Bootstrap mean and 95% confidence interval
+
+* Here we can use the built in `mean_cl_boot` function
+
+```{r}
+catch_per_tow(1985:2015, 1) %>% 
+  ggplot(aes(year, wt)) +
+  stat_summary(fun.data = "mean_cl_boot", colour = "red") +
+  expand_limits(y = 0) +
+  labs(x = NULL, y = NULL, title = "Cod: Bootstrap mean biomass and confidence interval") +
+  scale_x_continuous(breaks = seq(1985,2015,5))
+```
+
+```{r, eval = FALSE, echo = FALSE}
+To obtain a tablular value of the bootstrap statistics
+source("../R/boot_trials.R")
+catch_per_tow(1985:2015, 1) %>% 
+  group_by(year) %>% 
+  summarise(bl = bootlower(wt),
+            bm = bootmean(wt),
+            lu = bootupper(wt))
+```

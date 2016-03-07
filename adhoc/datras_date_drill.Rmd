@@ -1,0 +1,66 @@
+---
+title: "date drill"
+author: "Einar Hjörleifsson"
+date: "3 March 2016"
+output: 
+  html_document: 
+    fig_height: 6
+    fig_width: 10
+---
+
+
+```{r, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+source("R/datras.R")
+source("R/datras_tidy.R")
+st <- get_datras(record = "HH", survey = "NS-IBTS",
+                 year = 2014, quarter = 1) %>% 
+  tidy_station() 
+
+st %>% 
+  group_by(country) %>% 
+  summarise(n.tows = n()) %>% 
+  ggplot(aes(reorder(country, n.tows), n.tows)) +
+  geom_point() +
+  geom_linerange(aes(ymin = 0, ymax = n.tows)) +
+  coord_flip() +
+  labs(x = "Number of tows",
+       y = NULL, 
+       title = "2014 Q1 NS-IBTS: Number of hauls by countries")
+
+st %>% 
+  ggplot(aes(date, country)) +
+  geom_point() +
+  labs(x = NULL,
+       y = NULL,
+       title = "2014 Q1 NS-IBTS: Survey activity by country")
+
+st %>% 
+  group_by(country) %>% 
+  summarise(n.tows = n(),
+            s.duration = max(date) - min(date),
+            efficiency = n.tows/s.duration) %>% 
+  ggplot(aes(reorder(country, efficiency), efficiency)) +
+  geom_point() +
+  geom_linerange(aes(ymin = 0, ymax = efficiency)) +
+  coord_flip() +
+  labs(x = NULL, y = "Efficiency [tows per day per survey duration]", title = "2014 Q1 NS-IBTS")
+
+d <- 
+  st %>% 
+  mutate(hh = hour(date),
+         wd = wday(date,label = TRUE)) %>% 
+  group_by(country,hh,wd) %>% 
+  summarise(n.tows = n())
+ggplot(d) +
+  theme_bw() +
+  geom_point(aes(wd, hh, size = n.tows), colour = "red", alpha = 0.5) +
+  geom_text(aes(wd, hh, label = n.tows), colour = "blue") +
+  scale_size_area(max_size = 15) +
+  scale_y_continuous(breaks = seq(6, 18, by = 2)) +
+  facet_wrap(~ country) +
+  labs(x = NULL, y = "Time of day", title = "2014 Q1 NS-IBTS: Haul numbers by weekday and hour")
+
+```

@@ -1,0 +1,469 @@
+---
+title: "Getting started with ggplot2"
+output: html_document
+---
+
+# Preamble
+
+### Needed libraries for this tutorial:
+```{r, message = FALSE, warning = FALSE, results='hide'}
+library(geo)
+library(ggplot2)
+library(maps)
+library(mapdata)
+```
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE)
+source("../R/common.R")
+```
+
+### Getting example data into R
+```{r}
+d <- read.csv("http://www.hafro.is/~einarhj/data/minke.csv",
+              stringsAsFactors = FALSE)
+d2 <- read.csv("http://data.hafro.is/assmt/2015/cod/summary.csv",
+               stringsAsFactors = FALSE)
+```
+
+* __Get the data into your R-environment__
+
+__The minke data__:
+
+```{r}
+str(d)
+```
+
+__The assessment summary data__:
+
+Taken from <a href="http://data.hafro.is/assmt/2015/cod/" target="_blank">hafro data site</a>
+
+```{r}
+str(d2)
+```
+
+### Links
+
+* The ggplot2 site: http://docs.ggplot2.org/current
+* The ggplot2 book in the making: https://github.com/hadley/ggplot2-book
+    - A rendered version of the book: http://www.hafro.is/~einarhj/education/ggplot2
+        - needs to be updates
+* R graphics cookbook: http://www.cookbook-r.com/Graphs/
+
+
+# ggplot: Key components
+
+ggplot has __three__ key components: 
+
+1.  __data__,
+
+2. A set of __aesthetic mappings__ [aes] between variables in the data and 
+   visual properties, and 
+
+3. At least one layer which describes how to render each observation. Layers
+   are usually created with a __geom__ function.
+
+`r columns(1)`
+```{r}
+ggplot(d, aes(x = age, y = length)) + 
+  geom_point()
+```
+
+Different syntax, equivalent outcome:
+
+```{r, eval = FALSE}
+ggplot(d, aes(x = age, y = length)) + geom_point()
+ggplot(d, aes(age, length))         + geom_point()
+ggplot()                            + geom_point(data = d, aes(age, length))
+ggplot(data = d)                    + geom_point(aes(x = age, y = length))
+ggplot(d)                           + geom_point(aes(age, length))
+d %>% ggplot()                      + geom_point(aes(age, length))
+```
+
+Can be stored as an object for later use:
+
+```{r}
+p <- ggplot(d, aes(age, length)) + geom_point()
+```
+
+The class:
+```{r}
+class(p)
+```
+The structure (a bit of latin - not run here):
+```{r, eval = FALSE}
+str(p)
+```
+
+# aesthetic: colour
+`r columns(2)`
+```{r}
+p <- ggplot(d)
+p + geom_point(aes(age, length, colour = sex))
+p + geom_point(aes(age, length, colour = area))
+```
+
+Manual control of colours:
+```{r}
+p <- ggplot(d)
+p + geom_point(aes(age, length, colour = sex)) +
+  scale_colour_manual(values = c("orange","brown"))
+p + geom_point(aes(age, length, colour = area)) +
+  scale_colour_manual(values = c("orange","brown"))
+```
+
+# aesthetic: shape
+`r columns(1)`
+```{r}
+p + geom_point(aes(age, length, shape = sex))
+```
+
+## Exercise
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Create a code that results in these plots:
+`r columns(2)`
+```{r, echo = FALSE}
+p + geom_point(aes(age, length, colour = maturity))
+p + geom_point(aes(age, length, shape = maturity))
+```
+
+</div>
+</div>
+
+
+# aesthetic: size
+`r columns(1)`
+```{r}
+p + geom_point(aes(age, length, size = stomach.volume))
+```
+
+To reveal overlays:
+`r columns(2)`
+```{r}
+p + geom_point(aes(age, length, size = stomach.volume), alpha = 0.6)
+p + geom_point(aes(age, length, size = stomach.volume), alpha = 0.3, col = "red")
+```
+
+# facetting
+
+Display same graph by subsets of the data:
+`r columns(1)`
+```{r}
+ggplot(d) + 
+  geom_point(aes(age, length, colour = sex)) + 
+  facet_wrap(~ area)
+```
+
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+Create a code that results in this plot:
+`r columns(1)`
+```{r, echo = FALSE}
+ggplot(d) +
+  geom_point(aes(age, length, colour = area)) + 
+  facet_wrap(~ sex)
+```
+
+</div>
+</div>
+
+
+# layers
+
+## layer: add smoother to a plot
+
+`r columns(2)`
+```{r}
+p <- ggplot(d, aes(age, length))
+p + geom_point() + geom_smooth()
+p + geom_point() + geom_smooth(span = 0.1)
+```
+
+Specific models:
+`r columns(1)`
+```{r}
+p + geom_point() + geom_smooth(method = "lm")
+```
+
+## layer: points as jitters
+
+Add a little random noise to the data to avoid overplotting:
+`r columns(2)`
+```{r}
+p <- ggplot(d, aes(sex, length))
+p + geom_point()
+p + geom_jitter()
+```
+
+## layer: summarise via boxplots or violins
+`r columns(2)`
+```{r}
+p + geom_boxplot()
+p + geom_violin()
+```
+
+## layer: overlay data and summary layers
+
+`r columns(1)`
+```{r}
+p + geom_boxplot() + geom_jitter()
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+Create the following 3 layer plot:
+
+```{r, echo = FALSE}
+p + geom_violin() + geom_boxplot() + geom_jitter()
+```
+
+
+</div>
+</div>
+
+
+## layer: frequency polygons
+
+`r columns(2)`
+```{r}
+p <- ggplot(d, aes(length))
+p + geom_freqpoly()
+p + geom_freqpoly(aes(colour = sex))
+```
+
+## layer: histograms
+
+More details distribution than boxplots do, but more space:
+`r columns(2)`
+```{r}
+p + geom_histogram()
+p + geom_histogram(aes(fill = sex))
+```
+
+Better way for histograms:
+`r columns(1)`
+```{r}
+p + geom_histogram(aes(fill = sex)) + facet_wrap(~ sex, ncol = 1)
+```
+
+Controlling binwidths:
+```{r}
+p + geom_histogram(binwidth = 50)
+```
+
+## layer: bar charts
+
+Histograms for discrete data:
+`r columns(1)`
+```{r}
+ggplot(d, aes(maturity)) + geom_bar()
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Modify the above code to generate the following:
+
+```{r, echo = FALSE}
+ggplot(d, aes(maturity)) + geom_bar() + facet_wrap(~ area, nrow = 2)
+```
+</div>
+</div>
+
+
+
+
+## layer: line
+`r columns(2)`
+```{r}
+ggplot(d2, aes(Year, Rec)) + geom_line()
+ggplot(d2, aes(Year, Rec)) + geom_line() + expand_limits(y = 0)
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Create code to generate the following plots:
+`r columns(2)`
+```{r, echo = FALSE}
+ggplot(d2, aes(Year, B4plus)) + geom_line() + expand_limits(y = 0)
+ggplot(d2, aes(Year, Landings)) + geom_bar(stat = "identity")
+```
+
+The latter plot includes feature that has not been dealt with in these slides.
+</div>
+</div>
+
+
+## layer: path
+`r columns(2)`
+```{r}
+ggplot(d2, aes(SSB, Fbar)) + geom_line()
+ggplot(d2, aes(SSB, Fbar)) + geom_path()
+```
+
+Check out difference of:
+```{r, eval = FALSE}
+?geom_line
+?geom_path
+```
+
+Of more use:
+`r columns(2)`
+```{r}
+ggplot(d2, aes(SSB, Fbar)) + geom_path() + geom_point(aes(colour = Year), size = 3)
+```
+
+
+# Some controls
+
+## labels
+
+`r columns(2)`
+```{r}
+p <- ggplot(d, aes(age, length, colour = sex)) + geom_point()
+p
+p + labs(x = "Age [year]", y = "Length [cm]", 
+         colour = "Sex", title = "My minke plot")
+```
+
+## breaks
+
+Controls which values appear as tick marks
+`r columns(3)`
+```{r}
+p <- ggplot(d, aes(age, length)) + geom_point() + labs(x = NULL, y = NULL)
+p
+p +
+  scale_x_continuous(breaks = c(5, 10, 15, 20, 25, 30, 35, 40, 45))
+p +
+  scale_x_continuous(breaks = seq(5, 45, by = 5)) +
+  scale_y_continuous(breaks = seq(500, 950, by = 50))
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+Create code that mimics the following breaks:
+`r columns(2)`
+```{r, echo = FALSE}
+ggplot(d2, aes(Year, B4plus)) + 
+  geom_line() + 
+  expand_limits(y = 0) +
+  scale_x_continuous(breaks = seq(1960, 2020, by = 10)) +
+  scale_y_continuous(breaks = seq(0, 2500, by = 250))
+ggplot(d2, aes(Year, Landings)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(breaks = seq(1960, 2020, by = 10)) +
+  scale_y_continuous(breaks = seq(0, 500, by = 100))
+```
+
+
+</div>
+</div>
+
+
+
+## limits
+
+`r columns(3)`
+```{r}
+p <- ggplot(d, aes(maturity, length))
+p + geom_jitter()
+p + geom_jitter() + ylim(600, 800)
+p + geom_jitter() + ylim(NA, 800) # setting only one limit
+```
+
+For descrete variables:
+`r columns(1)`
+```{r}
+p + geom_jitter() + ylim(600,800) + xlim("immature","mature")
+```
+
+### warning
+
+But be careful when using with summary statistics, e.g.:
+`r columns(2)`
+```{r}
+p + geom_boxplot()
+p + geom_boxplot() + ylim(600, 800)
+```
+
+Remedy:
+`r columns(1)`
+```{r}
+p + geom_boxplot() + coord_cartesian(ylim = c(600, 800))
+```
+
+# A little gis
+
+```{r}
+str(island)
+```
+
+FAQ: where does island come from
+A: check `?island`
+
+
+`r columns(2)`
+```{r}
+p <- ggplot(island, aes(lon, lat)) + labs(x = NULL, y = NULL)
+p + geom_point()
+p + geom_line()
+```
+
+```{r}
+p + geom_path()
+p + geom_path() + coord_map()
+```
+
+## On maps
+
+* Maps as background for r-plot can come from myriad of sources
+* In this course we will largely focus on objects available in the map- and mapdata-packages.
+* To get the data into ggplot2 friendly form (data.frame) we use the `map_data` function.
+
+`r columns(1)`
+```{r}
+m <- map_data("world")
+str(m)
+ggplot(m) +
+  geom_polygon(aes(long, lat, group = group)) +
+  coord_quickmap()
+```
+
+The reslution of "word" is not very high as can be seen if only want iceland:
+```{r}
+m <- map_data("world", region = "denmark")
+ggplot(m) +
+  geom_polygon(aes(long, lat, group = group)) +
+  coord_quickmap()
+```
+
+If we want higher resolution the object "worldHires" is often sufficient:
+```{r}
+m <- map_data("worldHires")
+m <- m[m$long > -10 & m$long < 20 & m$lat > 50 & m$lat < 60,]
+ggplot(m) +
+  geom_polygon(aes(long, lat, group = group)) +
+  coord_quickmap()
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Play with different map areas
+
+</div>
+</div>

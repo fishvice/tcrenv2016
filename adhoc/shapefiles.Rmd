@@ -1,0 +1,27 @@
+---
+title: "Shapefiles"
+output: html_document
+---
+
+```{r setup, eval=FALSE}
+download.file("http://gis.ices.dk/shapefiles/ICES_ecoregions.zip",
+              destfile = "ICES_ecoregions.zip")
+unzip("ICES_ecoregions.zip")
+```
+
+```{r, message = FALSE}
+library(ggplot2)
+library(rgdal)
+ego <- readOGR(dsn = ".",
+              layer = "ICES_ecoregions_20150113_no_land")
+class(ego)
+plot(ego)
+ego2 <- fortify(ego)
+class(ego2)
+ggplot(ego, aes(long,lat, group = group)) +
+  geom_polygon(aes(fill = id)) +
+  geom_path() +
+  coord_map("ortho") +
+  theme(legend.position = "none")
+```
+
