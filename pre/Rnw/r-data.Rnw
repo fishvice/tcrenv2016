@@ -1,0 +1,535 @@
+% SLIDES - brug denne linie
+\documentclass[mathserif]{beamer} % options: gray
+
+% HANDOUTS - brug denne linie
+%\documentclass[handout,mathserif]{beamer} % options: gray
+
+\usetheme{CambridgeUS} %sidebar
+\usecolortheme{dolphin}
+
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
+\usepackage[T1]{fontenc}
+%\usepackage[icelandic]{babel}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{bm}
+\usepackage{tipx}
+\usepackage{marvosym}
+%\usepackage{subfigure}
+\usepackage{pgfpages}
+\usepackage{multirow}
+
+\usepackage{tikz,makecell}
+\usetikzlibrary{arrows,decorations.pathmorphing,decorations.footprints,
+fadings,calc,trees,mindmap,shadows,decorations.text,patterns,positioning,shapes,matrix,fit}
+\input{../lec1/graphical_settings}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+% hvis man vil har eg. 4 slides på en side
+% \pgfpagesuselayout{4 on 1}[a4paper,border shrink = 5mm, landscape]
+
+\definecolor{lgrey}{RGB}{245,245,245}
+\setbeamercolor{block body}{fg=black,bg=lgrey}
+
+
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\bi}{\begin{itemize}\item}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\eq}[1]{\begin{equation} #1 \end{equation}}
+\newcommand{\ea}[1]{\begin{eqnarray} #1 \end{eqnarray}}
+\newcommand{\vs}{\vspace{2mm}}
+
+\definecolor{Red}{rgb}{0.9,0,0.1}
+
+\title[R-ICES]{Data read into R}
+\author[Bjarki\&Einar]{Bjarki Þór Elvarsson and Einar Hjörleifsson}
+\date{} % beskidt .. men det virker
+\institute[MRI]{Marine Research Institute}
+\beamertemplatenavigationsymbolsempty % fjerner pdf-indhold, til hvis der bare skal printes slides ud
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<echo=FALSE, warning=FALSE, message=FALSE>>=
+library(ggplot2)
+library(plyr)
+library(dplyr)
+@
+\frame{
+\titlepage
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Reading data in R}
+\frame{
+\frametitle{Where can we find data}
+\begin{figure}
+  \begin{tikzpicture}[xscale = 1,yscale = 1]
+    \node (lykl)[GenericNodeStyle] at (4,2){Keyboard};
+    \node (tolfr)[GenericNodeStyle] at (-4,2){Other stats software};
+    \node[below of = tolfr](tolff){SPSS,Matlab,SAS};
+    \node (xml)[GenericNodeStyle] at (-4,-2){Webpages};
+    \node (Excel)[GenericNodeStyle] at (0,2){Excel};
+    \node (dbi)[GenericNodeStyle] at (0,-2){Databases};
+    \node[below of = dbi](sql){ODBC,sqlite,Oracle};
+    \node (R)[GenericNodeStyle] at (0,0){R};
+    \node (text)[GenericNodeStyle] at (4,-2){Textfiles};
+    \node[below of = text](skr){csv,txt,html};
+    \draw[->](lykl)--(R);
+    \draw[->](tolfr)--(R);
+    \draw[<->](Excel)--(R);
+    \draw[<->](dbi)--(R);
+    \draw[<->](text)--(R);
+    \draw[<->](xml)--(R);
+  \end{tikzpicture}
+\end{figure}
+
+
+}
+
+\frame{
+\frametitle{Forming the data -- rules of thumb}
+\begin{enumerate}
+\item Does each variable have its own column and each subject it own line?
+\vs
+\item Are there any unecessary lines?
+\vs
+\item Do the data contain any non-US characters?
+\vs
+\item Are there gaps in the data?
+\vs
+\item Are the results entered consistently?
+\vs
+\item Does every variable have its own name?
+\vs
+\item Are the numbers correctly entered?
+\vs
+\item Are there any items that can cause misunderstanding?
+\end{enumerate}
+}
+
+% \section{Cleaning up data}
+
+
+\begin{frame}[fragile]
+\frametitle{Data entered directly into R}
+One quickly enter data into R:
+<<eval=FALSE>>=
+weight <- c(1,5,3,2,6)
+length <- c(10,17,14,12,18)
+@
+
+or if you want a more structured entry:
+
+<<eval=FALSE>>=
+dat <- data.frame(id=numeric(0), species=character(0),
+                  length=numeric(0),age=numeric(0),
+                  lat = numeric(0),lon=numeric(0))
+dat <- edit(dat)
+@
+but this only creates variable in R that, unless saved, will disappear when R is closed.
+\end{frame}
+
+
+\begin{frame}[fragile,shrink=0.8]
+\frametitle{Text files - read in}
+\bi A lot of functions in R deal with reading in text files in various formats
+\vs
+\item Most of these functions are derivatives of \texttt{read.table}, such as \texttt{read.csv} and \texttt{read.delim}
+\ei
+
+<<eval=FALSE>>=
+dat <-
+  read.table(file = "nameOfFile", ## path to the file
+             header = TRUE,       ## are column names
+                                  ## at the top
+             dec = '.',           ## decimal sign
+             sep = ' ',           ## column separator symbol
+             skip = 0,            ## num lines at top to skip
+             stringsAsFactors = FALSE,
+             comment.char = '#')  ## indicating comments
+@
+
+
+\end{frame}
+
+
+
+
+
+\begin{frame}[fragile]
+\frametitle{Other read functions}
+<<eval=FALSE>>=
+read.csv        ## US style CSV file
+                ## col sep ',' and dec '.'
+read.csv2       ## European style CSV file
+                ## col sep ';' and dec ','
+read.fwf        ## Fixed width input
+                ## (used in the olden days)
+read.fortran    ## fotran formated text
+readLines       ## raw lines from the file
+scan            ## reads in a vector from the input
+@
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+\frametitle{Data sanity check}
+<<eval=FALSE>>=
+head(dat)     ## shows the top 6 lines of dat
+tail(dat)     ## shows the last 6 lines of dat
+dim(dat)      ## shows the num row and col of dat
+names(dat)    ## gives the column names of dat
+summary(dat)  ## Quick summary statistics for the
+              ## cols of dat
+str(dat)      ## show the variable types of dat
+glimpse(dat)  ## dplyr equivalent of str
+@
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+\frametitle{Text files - written out}
+Analoguous to \texttt{read.table} we have \texttt{write.table}:
+<<eval=FALSE>>=
+write.table(dat,
+            file = 'nameOfFile', ## file name
+            col.names = TRUE,    ## write header
+            row.names = FALSE,   ## write row names
+            quote = FALSE,       ## characters qouted?
+            sep = ',',
+            dec = '.')
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Other write functions}
+<<eval=FALSE>>=
+write.csv       ## US style CSV file
+                ## col sep ',' and dec '.'
+write.csv2      ## European style CSV file
+                ## col sep ';' and dec ','
+write.fwf       ## Fixed width input
+                ## from the gdata package
+write           ## write raw lines to a file
+@
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Location of files}
+R is agnostic to file locations
+\bi One can read a file in the working directory:
+<<eval=FALSE>>=
+minke <- read.csv2('minke.csv')
+@
+\item<2-> If minke whales are in folder called data within the working directory:
+<<eval=FALSE>>=
+minke <- read.csv2('data/minke.csv')
+@
+\item<3-> If it is somewhere on the computer one can use absolute positioning:
+<<eval=FALSE>>=
+minke <- read.csv2('~/data/minke.csv') ## linux/mac
+minke <- read.csv2('c:/data/minke.csv') ## windows
+@
+\item<4-> If it is on-line:
+<<eval=FALSE>>=
+minke <-
+  read.csv2('http://www.hafro.is/~bthe/data/minke.csv')
+@
+
+\ei
+
+\end{frame}
+
+\frame{
+\frametitle{Location of files -- relative positioning}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+\begin{tikzpicture}[sibling distance=10em,
+  every node/.style = {shape=rectangle, rounded corners,
+    draw, align=center,
+    top color=white, bottom color=white}],xscale = 0.75,yscale = 0.75]
+  \node {Root}
+    child { node {curr.dir} }
+    child { node {dir1}
+      child { node {dir2}
+        child { node {file1} }
+        child { node {file2} }
+        child { node {file3} }}
+      child { node {wrong.dir}}};
+\end{tikzpicture}
+
+\end{figure}
+\end{column}
+\begin{column}{0.5\linewidth}
+Assume you want read "file3" from "curr.dir":
+\bi Go up one level to "Root": ".."
+\item Go to dir1: "../dir1"
+\item Go to dir2: "../dir1/dir2"
+\item Locate file3: "../dir1/dir2/file3"
+\ei
+\vspace{3cm}
+
+\end{column}
+\end{columns}
+}
+
+
+
+\begin{frame}[fragile]
+\frametitle{Excel files}
+The \texttt{readxl} package provides support to read in Excel files directly into R
+<<eval=FALSE>>=
+# read_excel reads both xls and xlsx files
+read_excel("minke.xls")
+read_excel("minke.xlsx")
+
+# Specify sheet with a number or name
+read_excel("minke.xls", sheet = "data")
+read_excel("minke.xls", sheet = 2)
+
+# If NAs are represented by something other than blank cells,
+# set the na argument
+read_excel("minke.xls", na = "NA")
+
+## list excel sheets
+excel_sheets('minke.xls')
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Writing to Excel--files}
+The \texttt{openxlsx} package can create Excel documents
+<<eval=FALSE>>=
+## write single sheet to file
+write.xlsx(minke,file='minke.xlsx',sheetName='Minke whales')
+
+## multiple sheets
+write.xlsx(list('Minke whales'=minke,'fish'=fish),
+           file='minkeandfish.xlsx')
+
+@
+
+
+\end{frame}
+
+
+
+\frame{
+\frametitle{Databases}
+\bi Databases are commonly used to store (large amounts of) data and numerous software vendors provide database solutions, both general and specific
+\vs
+\item Similarly numerous packages exist to interact with databases in R. Notably \texttt{DBI}, \texttt{RODBC} and \texttt{dplyr}
+\vs
+\item Typically in an R session the user queries the database for the data needed for a particular analysis and loads it into memory. Larger datasets, that don't fit into memory will need to be subsampled
+\ei
+
+}
+
+
+\begin{frame}[fragile]
+\frametitle{Connecting to an Access database}
+\texttt{RODBC} provides functions to connect to an Access database
+<<odbc,eval=FALSE>>=
+# Load RODBC package
+library(RODBC)
+
+# Connect to Access db
+db <-
+  odbcConnectAccess("C:/Documents/NameOfMyAccessDatabase")
+
+# Get data
+data <- sqlQuery(db , "select *
+ from Name_of_table_in_my_database")
+
+# close connection
+close(db)
+@
+
+\end{frame}
+
+\frame{
+\frametitle{General database connectivity}
+The 'dplyr' package has built in connectivity for a wide range of data base types:
+\bi postgres
+\item mysql
+\item sqlite
+\item oracle (via dplyrOracle)
+\ei
+
+}
+
+\begin{frame}[fragile]
+\frametitle{Interacting with databases}
+<<eval=FALSE>>=
+src_sqlite()   ## sets up a connection
+               ## with an sqlite database
+src_postgres() ## sets up a connection with
+               ## an postgres database
+tbl()          ## calls a table from a database
+sql()          ## prepares a sql query
+copy_to()      ## saves a dataframe to a database
+               ## as a table
+@
+
+
+\end{frame}
+
+
+
+%\begin{frame}[fragile]
+%\frametitle{Oracle databases}
+%\bi Oracle has built an extensive R package called \texttt{ROracle}.
+%\item Here at Hafro a simple interface package was built, called \texttt{ora}, for the most common use cases
+%\ei
+%<<eval=FALSE>>=
+%## query the database
+%hvalir <- sql('select * from hvalir.hvalir_v')
+%
+%## describe the table (analogous to str in R)
+%desc('hvalir.hvalir_v')
+%
+%## list all tables or view owned by 'hvalir'
+%tables('hvalir')
+%views('hvalir')
+%@
+
+
+%\end{frame}
+
+%\begin{frame}[fragile]
+%\frametitle{Hafro data packages}
+%In addition to \texttt{ora} two other packages provide access to Hafro data:
+%\vs
+%\bi \texttt{fjolst} allows the access to commonly database tables and contains a copy of these tables
+%\vs
+%\item \texttt{Logbooks} contains logbook data from the commercial fishery where available
+%\ei
+%\vs
+%<<eval=FALSE>>=
+%data('fjolst')
+%data('Logbooks')
+%@
+
+%\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Other software packages}
+\bi Package \texttt{haven} provides support for SPSS, STATA and SAS files
+<<eval=FALSE>>=
+read_sas("path/to/file")  ## SAS files
+read_por("path/to/file")  ## SPSS portable files
+read_sav("path/to/file")  ## SPSS data files
+read_dta("path/to/file")  ## Stata files
+@
+\item Similarly \texttt{R.matlab} can read Matlab files
+<<eval=FALSE>>=
+readMat('path/to/file') ## Matlab data files
+@
+
+\ei
+\end{frame}
+
+\frame{
+\frametitle{DATRAS}
+\bi Data from European trawl surveys is available on-line from ICES
+\vs
+\item Data is formated in the usual manner:
+\bi \textbf{HH}: haul/station data
+\item \textbf{HL}: length data
+\item \textbf{CA}: age (otolith) data
+\ei
+\vs
+\item Two R-packages connect to DATRAS, DATRAS and rICES
+\vs
+\item For this course we will provide a script to obtain data from DATRAS
+\ei
+
+
+}
+
+\begin{frame}[fragile]
+\frametitle{DATRAS script}
+
+<<eval=FALSE>>=
+source('datras.R')
+## get station data
+st <- get_datras(record = "HH", survey = 'NS-IBTS',
+                 year = 2000, quarter = 1)
+
+## get length data
+le <- get_datras(record = "HL", survey = 'NS-IBTS',
+                 year = 2000, quarter = 1)
+
+## get age data
+age <- get_datras(record = "CA", survey = 'NS-IBTS',
+                  year = 2000, quarter = 1)
+
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile,shrink=0.9]
+\frametitle{FishBase}
+The 'rfishbase' package allows access to FishBase directly from R:
+
+<<eval=FALSE>>=
+library(rfishbase)
+## query data on length weight relationship
+lw <- length_weight('Gadus morhua')
+## query growth parameters
+vonB <- popgrowth('Gadus morhua')
+## find common names (in many languages)
+cod.names <- common_names('Gadus morhua')
+## diet data
+cod.diet <- diet('Gadus morhua')
+## fecundity
+cod.fec <- fecundity('Gadus morhua')
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Class excercise}
+\bi  Open notepad (or just create text file in Rstudio) and enter the following data, save it and read into R using \texttt{read.table}:
+\begin{verbatim}
+a   b   c
+1   1.5 cod
+2   2.5 haddock
+\end{verbatim}
+\vs
+\item Save the minke whale dataset to an excel file
+\vs
+\item Read in a datras dataset for a single year
+\vs
+\item Save the datras dataset to a database
+\vs
+\item Browse for your favorite species on FishBase with 'rfishbase'
+\ei
+\end{frame}
+
+
+
+
+
+
+
+
+
+\end{document}
+
+

@@ -1,0 +1,334 @@
+% SLIDES - brug denne linie
+\documentclass[mathserif]{beamer} % options: gray
+
+% HANDOUTS - brug denne linie
+%\documentclass[handout,mathserif]{beamer} % options: gray
+
+\usetheme{CambridgeUS} %sidebar
+\usecolortheme{dolphin}
+
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
+\usepackage[T1]{fontenc}
+%\usepackage[icelandic]{babel}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{bm}
+\usepackage{tipx}
+\usepackage{marvosym}
+%\usepackage{subfigure}
+\usepackage{pgfpages}
+\usepackage{multirow}
+
+\usepackage{tikz,makecell}
+\usetikzlibrary{arrows,decorations.pathmorphing,decorations.footprints,
+fadings,calc,trees,mindmap,shadows,decorations.text,patterns,positioning,shapes,matrix,fit}
+\input{graphical_settings}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+% hvis man vil har eg. 4 slides på en side
+% \pgfpagesuselayout{4 on 1}[a4paper,border shrink = 5mm, landscape]
+
+\definecolor{lgrey}{RGB}{245,245,245}
+\setbeamercolor{block body}{fg=black,bg=lgrey}
+
+
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\bi}{\begin{itemize}\item}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\eq}[1]{\begin{equation} #1 \end{equation}}
+\newcommand{\ea}[1]{\begin{eqnarray} #1 \end{eqnarray}}
+\newcommand{\vs}{\vspace{2mm}}
+
+\definecolor{Red}{rgb}{0.9,0,0.1}
+
+\title[R-ICES]{Reproducible research with R}
+%\subtitle{Course on data wrangling using R}
+\author[Bjarki\&Einar]{Bjarki Þór Elvarsson and Einar Hjörleifsson}
+\date{} % beskidt .. men det virker
+\institute[MRI]{Marine Research Institute}
+\beamertemplatenavigationsymbolsempty % fjerner pdf-indhold, til hvis der bare skal printes slides ud
+\AtBeginSection[]{
+\begin{frame}<beamer>
+   \frametitle{Overview}
+   \tableofcontents[currentsection]
+ \end{frame}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\frame{
+\titlepage
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Reproducible research}
+\frame{
+\frametitle{Reproducible research}
+\bi How did you do that?
+\vs
+\item What data did you use?
+\vs
+\item What scripts were used to do what?
+\ei
+}
+
+\frame{
+\frametitle{Typical workflow}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\bi Prepare data
+\vs
+\item Perform analysis
+\vs
+\item Generate report
+\vs
+\item Realise that something was wrong in the data or analysis
+\vs
+\item Do it all over again
+\ei
+\end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=0.9\textwidth]{iWKad22.png}
+
+\end{column}
+\end{columns}
+}
+
+
+\frame{
+\frametitle{What is reproducible research?}
+
+"The final product of research is not only the paper itself, but also the full computation environment used to produce the results in the paper such as the code and data necessary for reproduction of the results and building upon the research." (Xie, 2014).
+
+\includegraphics[width=0.8\linewidth]{research-pipeline}
+
+}
+
+\frame{
+\frametitle{Rmarkdown}
+
+A convenient tool to generate reproducible document.
+
+\bi    Markdown
+\bi        Remove HTML tag for higher readibility.
+\item        Inline HTML is avaliable.
+\ei
+\item    R markdown
+\bi        Markdown + embedded R code chunks
+\item        Rmd -> md -> docx, pdf,html
+\ei
+\item    Why R Markdown
+\bi        Consolidate your code and document into single file.
+\item        Easy for version control.
+\ei
+\ei
+
+}
+
+
+
+% \frame{
+% \frametitle{R Markdown}
+% \begin{columns}
+% \begin{column}{0.5\linewidth}
+% \bi R Markdown is a file format for making reproducible documents with R
+% \vs
+% \item  An R Markdown document is written in markdown (an easy-to-write plain text format) and contains chunks of embedded R code
+% \ei
+% \end{column}
+% \begin{column}{0.5\linewidth}
+% \includegraphics[width=0.9\linewidth]{markdown.png}
+% \end{column}
+% \end{columns}
+% }
+%
+
+\frame{
+\frametitle{Markdown}
+\includegraphics[width=0.9\linewidth]{markdownOverview.png}
+
+}
+
+\frame{
+\frametitle{Markdown quick refefence}
+\includegraphics[width=0.9\linewidth]{quickreference.png}
+
+}
+
+%\frame{
+%\frametitle{Inline R code}
+%You can also evaluate R expressions inline by enclosing the expression within a single back-tick qualified with ‘r’. For example, the following code:
+
+%\includegraphics[width=0.9\linewidth]{markdownInline.png}
+
+
+%Results in this output: “I counted 2 red trucks on the highway.”
+
+
+%}
+
+\begin{frame}[fragile]
+\frametitle{Markdown commands}
+\begin{verbatim}
+Text formatting
+#    1st level header  *a*    italics
+##   2nd level header  **b**  bold
+###  3rd level header
+
+List:                  Hyperlinks
+* item 1               [Hafro](www.hafro.is)
+* item 2
+  + subitem
+
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Markdown equations}
+Markdown also supports LaTeX equation so
+\begin{verbatim}
+$x^2 + \sum_i a_i y_i^n$
+\end{verbatim}
+becomes
+$$x^2 + \sum_i a_i y_i^n$$
+Further reading: https://en.wikibooks.org/wiki/LaTeX/Mathematics
+\end{frame}
+
+\frame{
+\frametitle{Embedding R}
+\includegraphics[width=0.9\linewidth]{markdownChunk.png}
+}
+
+
+\begin{frame}[fragile]
+\frametitle{Chunks}
+
+\bi Input from R in Markdown is evaluated in \texttt{chunks}:
+\begin{verbatim}
+```{r}
+<insert R code for Markdown>
+```
+\end{verbatim}
+\item Chunks have a plethora of options available by default:
+  \bi Allows you to display or hide code
+  \item Similarly display or hide its output
+  \item Figure dimensions can be set (if created by in the chunk)
+  \ei
+  \ei
+
+\end{frame}
+
+
+\frame{
+\frametitle{R code chunks}
+
+\begin{tikzpicture}
+\node at (-2,2) {\includegraphics[width=0.6\linewidth,trim={10cm 0 0 0},clip]{rmd-code1.png}};
+\node at (-2,-2) {\includegraphics[width=0.6\linewidth,trim={10cm 0 0 0},clip]{rmd-echo2.png}};
+\node at (4,-2) {\includegraphics[width=0.6\linewidth,trim={10cm 0 0 0},clip]{rmd-eval.png}};
+\node at (4,2) {\includegraphics[width=0.6\linewidth,trim={10cm 0 0 0},clip]{rmd-echo.png}};
+
+\end{tikzpicture}
+
+}
+
+\frame{
+\frametitle{Helpful chunk output options}
+
+\bi eval = TRUE : Evaluate all or part of the current chunk
+\item echo = TRUE : Show all or part of the source code
+\item results = 'asis' : Writes raw output from R to the output document without markup. Helpful for creating tables with xtable. markup is the default.
+\item include = TRUE : Code chunk will be included in output. If you don't want a chunk in the output but still evaluated set this to FALSE
+\ei
+
+}
+
+
+\frame{
+\frametitle{Figure settings}
+\bi fig.width controls the figure width (in inches)
+\item fig.height controls the figure height (in inches)
+\item fig.cap is the figure caption
+\item fig.align sets the alignment
+\item dev allows the user to specify the file type of the plot (png, pdf, bmp, etc..)
+\ei
+}
+
+\begin{frame}[fragile]
+\frametitle{Creating tables in RMarkdown}
+
+Tables in Markdown are fairly easy:
+\begin{verbatim}
+First Header  | Second Header
+------------- | -------------
+Content Cell  | Content Cell
+Content Cell  | Content Ce
+\end{verbatim}
+
+But one can also use R command to create tables. Note: Set results='asis' to write raw results from R into the output document
+<<eval=FALSE>>=
+library(knitr)
+kable(tab,caption = 'This is a table')
+@
+
+
+\end{frame}
+
+
+\frame{
+\frametitle{Output options}
+\bi Html, both slides and normal webpages
+\vs
+\item Word, requires either Word or Libreoffice to display
+\vs
+\item Pdf, requires LaTeX:
+\bi Linux do 'yum install texlive'
+\item Windows: install miktex from miktex.org
+\item MacOsX: install MacTeX from tug.org/mactex
+\ei
+\vs
+\item Custom output
+\ei
+}
+
+\frame{
+\frametitle{Other notable features}
+\bi Bibtex style citations
+\vs
+\item Theming available based on reference word documents, css files and latex templates
+\vs
+\item Allows the creation of interactive webpages using shiny
+\vs
+\item Support for presentations (beamer, ioslides, slidy)
+\ei
+}
+
+\frame{
+\frametitle{Class exercise}
+\bi Play around with Einar's ggplot2 document
+\ei
+}
+
+
+% \frame{
+% \frametitle{Class exercise}
+% \bi Create a markdown document in R-studio
+% \vs
+% \item Make a graph illustrating the age--length relationship by sex and insert into the markdown document
+% \vs
+% \item Produce a word document with the result
+% \ei
+% \vs
+% }
+%
+
+
+\end{document}

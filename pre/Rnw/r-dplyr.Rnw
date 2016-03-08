@@ -1,0 +1,450 @@
+% SLIDES - brug denne linie
+\documentclass[mathserif]{beamer} % options: gray
+
+% HANDOUTS - brug denne linie
+%\documentclass[handout,mathserif]{beamer} % options: gray
+
+\usetheme{CambridgeUS} %sidebar
+\usecolortheme{dolphin}
+
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
+\usepackage[T1]{fontenc}
+%\usepackage[icelandic]{babel}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{bm}
+\usepackage{tipx}
+\usepackage{marvosym}
+%\usepackage{subfigure}
+\usepackage{pgfpages}
+\usepackage{multirow}
+
+\usepackage{tikz,makecell}
+\usetikzlibrary{arrows,decorations.pathmorphing,decorations.footprints,
+fadings,calc,trees,mindmap,shadows,decorations.text,patterns,positioning,shapes,matrix,fit}
+\input{../lec1/graphical_settings}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+% hvis man vil har eg. 4 slides på en side
+% \pgfpagesuselayout{4 on 1}[a4paper,border shrink = 5mm, landscape]
+
+\definecolor{lgrey}{RGB}{245,245,245}
+\setbeamercolor{block body}{fg=black,bg=lgrey}
+
+
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\bi}{\begin{itemize}\item}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\eq}[1]{\begin{equation} #1 \end{equation}}
+\newcommand{\ea}[1]{\begin{eqnarray} #1 \end{eqnarray}}
+\newcommand{\vs}{\vspace{2mm}}
+
+\definecolor{Red}{rgb}{0.9,0,0.1}
+
+\title[R-ICES]{Grammar of data }
+\subtitle{dplyr}
+\author[Bjarki\&Einar]{Bjarki Þór Elvarsson and Einar Hjörleifsson}
+\date{} % beskidt .. men det virker
+\institute[MRI]{Marine Research Institute}
+\beamertemplatenavigationsymbolsempty % fjerner pdf-indhold, til hvis der bare skal printes slides ud
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<echo=FALSE, warning=FALSE, message=FALSE>>=
+library(ggplot2)
+library(plyr)
+library(dplyr)
+@
+\frame{
+\titlepage
+}
+
+\section{Grammar of data}
+\frame{
+ \frametitle{Working with data}
+ \begin{itemize}
+ \item[A] Reformat a variable (e.g. as factors or dates)
+ \item[B] Split one variable into two or more
+ \item[C] Join two or more variables together
+ \item[D] Create new variables based on calculated results
+ \item[E] Create variables from bits of text
+ \item[F] Rename variables
+ \item[G] Create summaries
+ \end{itemize}
+
+ }
+
+
+
+\frame{
+\frametitle{dplyr and tidyr}
+\bi dplyr and tidyr are a set of tools for a common set of problems connected to
+aggregates or summaries of data.
+\vs
+\item Similar to ggplot2 they feature a Domain Specific Language (DSL)
+  specially designed for data summaries.
+\vs
+\item Developed by Hadley Wickam, the creator ggplot2 and other
+  useful tools.
+\ei
+
+}
+
+
+
+
+\frame{
+\frametitle{Summarising data for groups}
+Commonly, when collating summaries by group, one wants to:
+\bi \textbf{Split} up a big data structure into homogeneous pieces,
+\vs
+\item \textbf{Apply} a function to each piece
+\vs
+\item \textbf{Combine} all the results back together.
+\ei
+
+For example, one might want to
+
+\bi fit the same model each patient subsets of a data frame
+\vs
+\item quickly calculate summary statistics for each group
+\vs
+\item perform group-wise transformations like scaling or standardising
+\ei
+}
+
+\frame{
+\frametitle{One table verbs}
+\bi filter: keep rows matching criteria
+\vs
+\item select: pick columns by name
+\vs
+\item arrange: order the rows according to a variable
+\vs
+\item mutate: add new variables
+\vs
+\item summarise: reduce variables to values
+\ei
+}
+
+\frame{
+\frametitle{Structure}
+\bi First argument is a data frame
+\vs
+\item Always return a data frame
+\vs
+\item Subsequent arguments say what to do with data frame
+\vs
+\item (Never modify in place)
+\ei
+}
+
+%<<echo=FALSE,message=FALSE,warning=FALSE>>=
+%minke <- read.csv('../data/minke.csv')
+%@
+
+
+
+\frame{
+\frametitle{filter}
+\bi select rows that satisfy a certain condition
+\item input dataframe/database table and bolean condition
+\ei
+\includegraphics[width=0.6\linewidth]{figs/filter.png}
+}
+
+
+\frame{
+\frametitle{select}
+\bi select only certain columns
+\item input dataframe/database table and column names
+\item allows negative index of column names and allows renaming
+\ei
+\includegraphics[width=0.55\linewidth]{figs/select.png}
+}
+
+\frame{
+\frametitle{arrange}
+\bi arranges by certain columns
+\item input dataframe/database table and column names to arrange by
+\item defaults to ascending order but can arrange in descending by writing desc around the column name
+\ei
+\includegraphics[width=0.6\linewidth]{figs/arrange.png}
+}
+
+\frame{
+\frametitle{mutate}
+\bi Adds and modifies columns
+\item input dataframe and column names with modifying formulas
+\item column are created using R commands
+\ei
+\includegraphics[width=0.6\linewidth]{figs/mutate.png}
+}
+
+\frame{
+\frametitle{summarise}
+\bi Creates summaries from tabular data
+\item input dataframe and column names representing the summaries
+\item column are created using R commands
+\ei
+\includegraphics[width=0.6\linewidth]{figs/summarise.png}
+}
+
+\begin{frame}[fragile]
+\frametitle{Group verbs}
+\bi group\_by: Group data into rows with the same value of (a) particular variable(s)
+<<eval=FALSE>>=
+minke <- group_by(minke,sex)
+@
+\item ungroup: Remove grouping information from data frame
+<<eval=FALSE>>=
+minke <- ungroup(minke)
+@
+
+\ei
+\end{frame}
+
+\frame{
+\frametitle{Grouped summaries}
+\includegraphics[width=0.8\linewidth]{figs/group_summarise.png}
+
+}
+
+
+\frame{
+\frametitle{Reshape verbs}
+\bi gather: Gather columns into rows
+\vs
+\item spread: Spread rows into columns
+\vs
+\item separate: Separate one column into many
+\vs
+\item unite: Unite several columns into one
+\ei
+}
+
+
+\frame{
+\frametitle{Gather}
+\bi Takes data from a wide format (i.e. human readable) to a long format (computer readable.
+\item Inputs are data, key columns and value columns
+\item Gather allows the negative indexing for both key and value column names
+\ei
+\includegraphics[width=0.8\linewidth]{figs/gather.png}
+
+}
+
+
+
+\frame{
+\frametitle{Spread}
+\bi Takes data from a long format to a wide format).
+\item Inputs are data, key column (i.e. new column names) and value column
+\ei
+\includegraphics[width=0.8\linewidth]{figs/spread.png}
+
+}
+
+\frame{
+\frametitle{Separate}
+\bi Splits a column into two (or more) columns
+\item Inputs are data, column to be split, name of the new columns (as characters) and the splitting character
+\ei
+
+\includegraphics[width=0.8\linewidth]{figs/separate.png}
+
+}
+
+\frame{
+\frametitle{Unite}
+\bi Unites two or more columns
+\item Inputs are data, name of the new (united) column, names of columns to be united and separating character
+\ei
+
+\includegraphics[width=0.8\linewidth]{figs/unite.png}
+
+}
+
+\begin{frame}[fragile,shrink=0.9]
+\frametitle{Joining data together}
+One can join together two data.frames in a number of ways
+<<eval=FALSE>>=
+inner_join(x,y)   ## only rows where there is a
+                  ## match between x and y
+left_join(x,y)    ## keep x add matching data from y
+right_join(x,y)   ## keep y add matching data from x
+semi_join(x,y)    ## keep only data from x
+                  ## that matches y
+anti_join(x,y)    ## keep only data from x
+                  ## that doesn't match y
+full_join(x,y)    ## keep all x and y
+                  ## (all NA's where no match)
+@
+
+\end{frame}
+
+
+
+%' \begin{frame}[fragile,shrink=0.9]
+%' \frametitle{Filter data}
+%' One can create a subset of the data using the \texttt{filter} command:
+%' <<eval=FALSE>>=
+%' ## create a dataset with only females
+%' minke.females <-
+%'   filter(minke,sex=='Female')
+%' @
+%'
+%' \end{frame}
+
+
+%' \begin{frame}[fragile]
+%' \frametitle{Modifying columns}
+%' If one wants to create a new variable (column) into the data sets one can either:
+%'
+%' <<eval=FALSE>>=
+%' minke$approx.weight <- 3.85*1e-06*minke$length^3.163
+%' @
+%'
+%' or use mutate
+%'
+%' <<eval=FALSE>>=
+%' minke <- mutate(minke,approx.weight = 3.85*1e-06*length^3.163)
+%' @
+%'
+%' This probably not very useful until you want to create many variables at once:
+%'
+%' <<>>=
+%' minke <- mutate(minke,
+%'                 approx.weight = 3.85*1e-06*length^3.163,
+%'                 weight = ifelse(is.na(weight),approx.weight,
+%'                                 weight))
+%' @
+%'
+%' \end{frame}
+%'
+%'
+%' \begin{frame}[fragile]
+%' \frametitle{Creating summaries}
+%' Similarly one can create summaries from the data using the summarise function:
+%' <<>>=
+%' summarise(minke,num.obs = length(whale.id))
+%' @
+%'
+%' And new summaries can be added:
+%'
+%' <<>>=
+%' summarise(minke,
+%'           num.obs = length(whale.id),
+%'           num.fem = sum(sex == 'Female'),
+%'           num.large = sum(length > 650))
+%' @
+%'
+%'
+%' \end{frame}
+%'
+%' \begin{frame}[fragile]
+%' \frametitle{Split - apply - combine}
+%' \bi Summarise and mutate are somewhat useful on its own but become much more useful when combined with a group\_by statement:
+%' <<>>=
+%' ## split the analysis by area
+%' minke <- group_by(minke,maturity)
+%' summarise(minke,
+%'           num.obs = length(whale.id),
+%'           num.fem = sum(sex=='Female'),
+%'           num.large = sum(length>650))
+%'
+%' @
+%'
+%' <<echo=FALSE>>=
+%' minke <- ungroup(minke)
+%' @
+%'
+%' \ei
+%' \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Chaining expressions together}
+\bi In R one can apply functions to data:
+<<eval=FALSE>>=
+avg.l <- mean(minke$length)
+l2 <- avg.l^2
+@
+\item One also chain this together:
+<<eval=FALSE>>=
+l2 <- mean(minke$length)^2
+@
+
+\ei
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Chaining expressions together}
+All this can quickly become cumbersome and hard to read (and modify):
+<<eval=FALSE>>=
+summarise(group_by(filter(minke,!is.na(weight)),
+                   sex),num.whale=n(),
+          m.weight = mean(weight))
+@
+What does this command do?
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The $\%>\%$ operator}
+Operations can however chained using the $\%>\%$ operator from dplyr
+<<eval=FALSE>>=
+minke %>%
+  filter(!is.na(weight)) %>%
+  group_by(sex) %>%
+  summarise(num.whale = n(),
+            m.weight = mean(weight))
+
+## hint think of %>% as 'then'
+@
+The  $\%>\%$ operator pushes the output from the first command as the first input to the next command
+\end{frame}
+
+
+
+\begin{frame}[shrink=0.8]
+\frametitle{Further reading}
+\bi https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf
+\vs
+\item https://cran.rstudio.com/web/packages/dplyr/\-vignettes/introduction.html
+\vs
+\item http://vita.had.co.nz/papers/tidy-data.pdf
+\vs
+\item http://www.jvcasillas.com/tidyr\_tutorial/
+\vs
+\item http://stackoverflow.com/questions/3505701/r-grouping-functions-sapply-vs-lapply-vs-apply-vs-tapply-vs-by-vs-aggrega
+\ei
+
+\end{frame}
+
+
+
+\frame{
+\frametitle{Excercise 3}
+Create a new script, 'Ex3.R' and write code that produces:
+\bi The number of whales caught each year
+\vs
+\item The proportion caught of which are females each year
+\vs
+\item Calculate the mean length and age along with standard deviation grouped by maturity
+\vs
+\item Using $\%>\%$ and spread, calculate number of whales caught by area (rows) and year (columns)
+\ei
+}
+
+
+
+\end{document}
+
+

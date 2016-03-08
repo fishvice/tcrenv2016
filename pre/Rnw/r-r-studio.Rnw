@@ -1,0 +1,907 @@
+% SLIDES - brug denne linie
+\documentclass[mathserif]{beamer} % options: gray
+
+% HANDOUTS - brug denne linie
+%\documentclass[handout,mathserif]{beamer} % options: gray
+
+\usetheme{CambridgeUS} %sidebar
+\usecolortheme{dolphin}
+
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
+\usepackage[T1]{fontenc}
+%\usepackage[icelandic]{babel}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{bm}
+\usepackage{tipx}
+\usepackage{marvosym}
+%\usepackage{subfigure}
+\usepackage{pgfpages}
+\usepackage{multirow}
+
+\usepackage{tikz,makecell}
+\usetikzlibrary{arrows,decorations.pathmorphing,decorations.footprints,
+fadings,calc,trees,mindmap,shadows,decorations.text,patterns,positioning,shapes,matrix,fit}
+\input{graphical_settings}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+% hvis man vil har eg. 4 slides på en side
+% \pgfpagesuselayout{4 on 1}[a4paper,border shrink = 5mm, landscape]
+
+\definecolor{lgrey}{RGB}{245,245,245}
+\setbeamercolor{block body}{fg=black,bg=lgrey}
+
+
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\bi}{\begin{itemize}\item}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\eq}[1]{\begin{equation} #1 \end{equation}}
+\newcommand{\ea}[1]{\begin{eqnarray} #1 \end{eqnarray}}
+\newcommand{\vs}{\vspace{2mm}}
+
+\definecolor{Red}{rgb}{0.9,0,0.1}
+
+\title[R-ICES]{R and R-Studio}
+%\subtitle{Course on data wrangling using R}
+\author[Bjarki\&Einar]{Bjarki Þór Elvarsson and Einar Hjörleifsson}
+\date{} % beskidt .. men det virker
+\institute[MRI]{Marine Research Institute}
+\beamertemplatenavigationsymbolsempty % fjerner pdf-indhold, til hvis der bare skal printes slides ud
+\AtBeginSection[]{
+\begin{frame}<beamer>
+   \frametitle{Overview}
+   \tableofcontents[currentsection]
+ \end{frame}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<echo=FALSE, warning=FALSE, message=FALSE>>=
+library(ggplot2)
+library(plyr)
+library(dplyr)
+@
+\frame{
+\titlepage
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frame{
+\frametitle{Overview}
+\tableofcontents
+}
+
+
+\section{Introduction to R}
+
+\frame{
+\includegraphics[width=0.8\linewidth]{Dont-Panic.jpg}
+
+}
+
+\frame{
+  \frametitle{Why R?}
+  R has become the lingua france of statistical analysis and data wrangling
+  \vs
+  \bi It’s free! If you are a teacher or a student, the benefits are obvious
+  \vs
+  \item It runs on a variety of platforms including Windows, Unix and MacOS
+  \vs
+  \item It provides an unparalleled platform for programming new statistical
+methods in an easy and straightforward manner
+  \vs
+  \item It offers powerful tools for data exploration and presentation
+  \ei
+
+}
+
+\frame{
+\frametitle{Why not Excel}
+\begin{tikzpicture}
+\node at (0,0) {\includegraphics[width=0.7\linewidth]{excel1.png}};
+\node[visible on=<2->] at (0,-1) {\includegraphics[width=0.7\linewidth]{excel3.png}};
+\node[visible on=<3->] at (1,0){\includegraphics[width=0.7\linewidth]{excel2.png}};
+\node[visible on=<4->] at (1,-1) {\includegraphics[width=0.7\linewidth]{excel4.png}};
+\end{tikzpicture}
+
+
+}
+
+%\frame{
+%\frametitle{The origins of R}
+%\begin{tikzpicture}
+%\node at (0,0) {\includegraphics[width=0.3\linewidth]{punchcard.jpg}};
+%\node[visible on=<2->] at (0,4) {\includegraphics[width=0.3\linewidth]{oldComputer.jpg}};
+%\node[visible on=<3->] at (5,4){\includegraphics[width=0.3\linewidth]{newComputer.jpg}};
+%\node[visible on=<4->] at (5,0) {\includegraphics[width=0.3\linewidth]{R-idea.png}};
+%\end{tikzpicture}
+%}
+
+%\begin{columns}
+%\begin{column}{0.5\linewidth}
+%\includegraphics[width=0.9\linewidth]{bell.png}
+%\end{column}
+%\begin{column}{0.5\linewidth}
+
+%\bi The early days of statistical computing used fortran (and punchcards)
+%\item The S language conceived to allow interactive data analysis, combining fortran routines
+%\item Developed at Bell labs in the late 70's by John Chambers
+%\item One of many languages developed at the time for interactive data analysis and calculations (SAS, SPSS, %Matlab)
+%\item Commercially implemented as Splus
+%\ei
+%\end{column}
+%\end{columns}
+
+
+
+\frame{
+\frametitle{What is R?}
+\includegraphics[width=0.9\linewidth]{garage.jpg}
+
+}
+
+\frame{
+\frametitle{What is R (cont)}
+\bi R is commandline driven:
+  \bi its biggest appeal as one can reuse commands
+  \item its biggest hurdle in widespread use
+  \ei
+  \vs
+  \item R is open-source:
+  \bi Other statistical software packages can be extremely expensive
+  \item Large user base with almost all statistical methods implemented
+  \ei
+  \ei
+
+}
+
+\frame{
+\frametitle{R - interfaces}
+\begin{tikzpicture}
+\node[anchor=center] at (0,0){\includegraphics[width=0.4\linewidth]{rcommandline.png}};
+\node[visible on=<2->] at (0,-2){\includegraphics[width=0.4\linewidth]{Rmac.jpg}};
+\node[visible on=<3->] at (-2,0){\includegraphics[width=0.4\linewidth]{ess.png}};
+\node[visible on=<4->] at (0,2){\includegraphics[width=0.4\linewidth]{rkward.png}};
+\node[visible on=<5->] at (2,0){\includegraphics[width=0.4\linewidth]{rcmmdr.jpg}};
+\node[visible on=<6->] at (0,0){\includegraphics[width=0.6\linewidth]{rstudio0.png}};
+
+\end{tikzpicture}
+
+}
+
+\section{RStudio}
+\frame{
+\frametitle{RStudio}
+
+\bi RStudio allows the user to run R in a more user-friendly environment.  It is open- source (i.e. free) and available at \url{www.rstudio.com}
+\vs
+\item built to help you write R code, run R code, and analyze data with R
+\vs
+\item text editor, version control, project handling, markdown support, keyboard shortcuts, debugging tools, and much more
+\ei
+}
+
+\frame{
+\frametitle{Using R-studio}
+
+   \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=0.8\textwidth]{rstudio}};
+    \node[red,ultra thick] at (2,2) {R - console};
+%    \node[red,ultra thick,visible on=<3->] at (8,5) {Session info};
+%    \node[red,ultra thick,visible on=<4->] at (2,5) {Script editor};
+%    \node[red,ultra thick,visible on=<5->] at (8,2) {Other items};
+\end{tikzpicture}
+
+}
+
+\begin{frame}[fragile]
+\frametitle{R-console}
+One can type commands directly into the console to perform calculations:
+<<>>=
+1+1 ## this should be 2
+mean(c(1,2,3,4,5)) ## mean of all numbers from 1 to 5
+@
+and assign the results with the "<-" sign:
+<<>>=
+x <- 1+1 ## save the result into a variable named x
+x        ## print out the value of x to screen
+@
+
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+\frametitle{Using R as a calculator}
+R can be used as calculator:
+<<eval=FALSE>>=
+1+1       # 1 plus 1 equals 2;)
+2*2       # 2 times 2 equals 4
+3^2.5     # 3 to the power of 2.5
+exp(5)    # e to the power of 5
+log(5)    # natural logarithm (ln) of 5
+log10(5)  # Base 10 log of 5
+1/2       # 1 over 2 equals 0.5
+@
+
+
+\end{frame}
+
+
+
+\frame{
+\frametitle{Data types}
+R has a number of data types to handle the various inputs from the user:
+\vs
+\bi Numbers: integers, reals and complex
+\vs
+\item Strings: letters, words, files etc..
+\vs
+\item Logicals: TRUE or FALSE
+\vs
+\item Factors: integer numbers that correspond to a fixed (limited) set of values
+\vs
+\item NA's: Not Available, used when data is missing
+\ei
+}
+
+\begin{frame}[fragile]
+\frametitle{Data types}
+<<eval=FALSE>>=
+x <- 1.2         ## number
+y <- 'A'         ## string
+z <- TRUE        ## logical
+w <- factor('A') ## factor
+@
+
+
+\end{frame}
+
+\frame{
+\frametitle{Data structures}
+One of R's many strengths are multiple data structures:
+\bi \textbf{vectors} (1d)
+\vs
+\item matricies (2d)
+\vs
+\item arrays (nd)
+\vs
+\item \textbf{dataframes} (2d)
+\vs
+\item lists (1d, sort of)
+\vs
+\item ...
+\ei
+}
+
+
+\begin{frame}[fragile]
+\frametitle{Vectors}
+Vectors can contain:
+\bi Numbers
+\item Strings
+\item Logicals
+\item NA's
+\ei
+<<eval=FALSE>>=
+x <- c(1,2,3)       ## vector of numbers
+y <- c('a','b','c') ## vector of strings
+z <- c(TRUE,FALSE)  ## vector of locigals
+class(x)            ## returns the type of vector
+u <- NA             ## NA
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Useful commands for vectors}
+<<eval=FALSE>>=
+seq(1,10)        ## makes a vector from 1 to 10
+1:10             ## same
+rep(2,3)         ## makes a vector that contains 2, 3 times
+length(y)        ## returns the length of a vecor named y
+sort(y)          ## sorts a vector into ascending or
+                 ## descending order
+cut(y)           ## divides the range of y into intervals and
+                 ## makes a factor variable
+as.character(y)  ## changes y to a character vector
+cbind(x1,x2)     ## binds vectors by columns
+rbind(x1,x2)     ## binds vectors by rows
+
+@
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Useful commands for vectors (II)}
+<<eval=FALSE>>=
+mean()       # mean
+median()     # median
+quantile()   # quantiles
+summary()    # depends on what we feed it with...
+sd()         # standard deviation
+var()        # variance
+range()      # range
+min()        # smallest value
+max()        # largest value
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Logical statements}
+<<eval=FALSE>>=
+a == b   ## a is equal to b
+a != b   ## a is not equal to b
+a > b    ## a is greater than b
+a >= b   ## a is greater or equal to b
+a < b    ## a is less than b
+a <= b   ## a is less or equal to b
+a & b    ## a and b
+a | b    ## a or b
+!a       ## not a
+is.na(a) ## is a equal to NA (missing)
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Selecting parts of a vector}
+<<eval=FALSE>>=
+x[1]          ## get the first element of a vector
+x[c(1,2)]     ## get the first and second element
+x[-1]         ## get every element except the first one
+x[-c(1,2)]    ## get every element except 1 and 2
+x[x==3]       ## all elements that are equal to 3
+x[!is.na(x)]  ## all elements that are not NA
+x[x!=3&x<5]   ## all elements that not equal to 3 and <5
+
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Data-frames}
+\bi Data frames are collections of vectors (columns) of the same length, similar to a table in a database
+\vs
+\item The columns do not need to be of the same type
+\vs
+\item One can access the columns:
+<<eval=FALSE>>=
+data$Col.name        ## get column named Col.name
+data[,1]             ## get column number 1
+@
+\item and the entries in the column:
+<<eval=FALSE>>=
+data$Col.name[1]    ## get entry number 1 from Col.name
+data[2,1]           ## get entry number 2 from column 1
+@
+\ei
+\end{frame}
+
+\begin{frame}[fragile,shrink=20]
+\frametitle{Base R scatter plot}
+<<fig.height=5>>=
+x <- 1:9
+y <- 10*(1:9)
+plot(x,y)
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=20]
+\frametitle{Base R histogram}
+<<fig.height=5>>=
+x <- rnorm(100)
+hist(x)
+@
+
+\end{frame}
+
+
+\frame{
+\frametitle{Using R-studio}
+
+   \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=0.8\textwidth]{rstudio}};
+%    \node[red,ultra thick,visible on=<2->] at (2,2) {R - console};
+%    \node[red,ultra thick,visible on=<3->] at (8,5) {Session info};
+    \node[red,ultra thick] at (2,5) {Script editor};
+%    \node[red,ultra thick,visible on=<5->] at (8,2) {Other items};
+\end{tikzpicture}
+
+}
+
+\begin{frame}[fragile]
+\frametitle{Working in R}
+\bi In R we use \textit{commands} to create new \textit{objects}. When we do that we have a choice to do two things:
+\bi The command spits out the results to the screen and then these results forgotten
+\item The command saves the output so we can reuse it.
+\ei
+\vs
+\item R can't save the object without giving it a name
+<<eval=FALSE>>=
+name <- command
+@
+
+\vs
+\item Note that, like in real life, there is not undo button
+\vs
+\item One should rather "remember" the commands used to create the object
+\ei
+\end{frame}
+
+\frame{
+\frametitle{Script editor}
+  \bi Is opened when selecting File->New file->R script from the menu panel
+  \vs
+  \item A R script is basically a series of R commands that can be run in the console
+  \vs
+  \item It is recommended to store all commands that "work" in a script for later reconstruction of a particular analysis
+  \vs
+  \item It is possible to run a single line in a script by pressing [ctrl]+Enter or the \includegraphics[width=0.1\linewidth]{button.png}  button in the top right corner
+  \ei
+}
+
+
+\frame{
+\frametitle{Using R-studio}
+
+   \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=0.8\textwidth]{rstudio}};
+%    \node[red,ultra thick] at (2,2) {R - console};
+    \node[red,ultra thick] at (8,5) {Session info};
+%    \node[red,ultra thick,visible on=<4->] at (2,5) {Script editor};
+%    \node[red,ultra thick,visible on=<5->] at (8,2) {Other items};
+\end{tikzpicture}
+
+}
+
+\frame{
+\frametitle{Session info}
+  \begin{columns}
+  \begin{column}{0.5\linewidth}
+  \bi \textbf{Environment}: Contains a list of all declared variables. If you have a dataset you can double click the variable to view the data.
+  \vs
+  \vs
+  \item \textbf{History}: Contains a list of all previous commands entered into the console.
+\ei
+  \end{column}
+  \begin{column}{0.5\linewidth}
+  \includegraphics[width=0.9\linewidth]{env.png}\\
+  \vs
+  \includegraphics[width=0.9\linewidth]{hist.png}
+  \end{column}
+  \end{columns}
+}
+
+
+\frame{
+\frametitle{Getting data into R}
+The environment tab allows you also to import data into R:
+\begin{tikzpicture}
+\node at (0,0) {\includegraphics[width=0.7\linewidth]{importdataset1.png}};
+\node[visible on=<2->] at (1,0) {\includegraphics[width=0.7\linewidth]{choosedataset.png}};
+\node[visible on=<3->] at (2,0) {\includegraphics[width=0.7\linewidth]{previewdata.png}};
+\node[visible on=<4->] at (3,0) {\includegraphics[width=0.7\linewidth]{dataopen1.png}};
+\end{tikzpicture}
+
+}
+
+\frame{
+\frametitle{Using R-studio}
+
+   \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=0.8\textwidth]{rstudio}};
+%    \node[red,ultra thick] at (2,2) {R - console};
+%    \node[red,ultra thick] at (8,5) {Session info};
+%    \node[red,ultra thick,visible on=<4->] at (2,5) {Script editor};
+    \node[red,ultra thick] at (8,2) {Other items};
+\end{tikzpicture}
+
+}
+
+\frame{
+\frametitle{Other items--files}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+  \textbf{Files}: Shows files on the computer. The user can change the working directory (where R reads data-files and scripts from) by selecting "more->Set as working directory"
+  \end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=0.9\linewidth]{files.png}
+\end{column}
+\end{columns}
+
+}
+
+\frame{
+\frametitle{Other items--plots}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+ \textbf{Plots}: Graphical output from R. The user can export these the figures to file (as jpeg, png or pdf) or to clipboard
+
+\end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=0.9\linewidth]{plot.png}
+\end{column}
+\end{columns}
+
+}
+
+\frame{
+\frametitle{Other items--help}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\textbf{Help}: Gives a browsable interface to R's in-line help pages. The user can search for a topic or a specific function
+\end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=0.9\linewidth]{help.png}
+\end{column}
+\end{columns}
+
+}
+
+
+\frame{
+\frametitle{On help}
+A help page for a function usually has the following categories:
+\bi \textbf{Description}: short description of the function
+\item \textbf{Usage}: how the function is used/called from R
+\item \textbf{Arguments}: What are the function inputs
+\item \textbf{Details}: The nitty gritty on how the function should work
+\item \textbf{Examples}: example uses
+\item \textbf{See also}: other useful functions that are similar
+\ei
+
+}
+
+\begin{frame}[fragile]
+\frametitle{Help commands}
+One can also get help from the console:
+<<eval=FALSE>>=
+help.start()         # General help page
+help(nameOffuntion)  # Gives the help page needed
+?nameOffunction      # shorthand
+help.search('topic') # searches for specific topic
+@
+
+\end{frame}
+
+
+\frame{
+\frametitle{Packages}
+\bi One of R's greatest strengths comes from specialized add-ons, called \textit{packages} that the user can download and install
+\vs
+\item Users download packages from CRAN's website (Comprehensive R Archive Network)
+\vs
+\item Currently at 7811 packages (January 20th 2016)
+\vs
+\item All packages comes with both an in-line and pdf manual
+\ei
+
+}
+
+\frame{
+\frametitle{Package growth}
+\includegraphics[width=0.6\linewidth]{cran_packages.png}
+}
+
+\frame{
+\frametitle{MRI's R packages}
+\bi geo -- nautical charts (also available on CRAN)
+\vs
+\item ora -- data base connectivity
+\vs
+\item fjolst -- all samples from commercial and survey vessels
+\vs
+\item Logbooks -- logbooks from the commercial fishery
+\vs
+\item Rgadget -- specialised package to interact with Gadget
+\ei
+}
+
+\begin{frame}[fragile]
+\frametitle{Using packages}
+\bi One can use the \texttt{install.packages} command to download and install packages
+\vs
+\item To use the package in an R session one needs to load it into memory using the \texttt{library} command
+\vs
+\item In R-studio one can also select, load and install packages in the "other items" part
+\ei
+<<eval=FALSE>>=
+install.packages('ggplot2') ## install package named ggplot2
+library(ggplot2)            ## load it into memory
+@
+
+\end{frame}
+
+\frame{
+\frametitle{Projects}
+  \bi Rstudio allows us to make things a little bit easier to isolate the task we are working with a any given point by defining specific \textbf{projects}
+  \vs
+  \item Projects save the state between sessions. This includes:
+  \bi Working directories
+  \item Open files/scripts
+  \item Workspaces
+  \item Color scheme
+  \ei
+  \vs
+  \item Projects are created by selecting File->New project
+  \ei
+}
+
+\frame{
+\frametitle{Creating projects}
+\begin{tikzpicture}
+\node at (0,0) {\includegraphics[width=0.6\linewidth]{project1.png}};
+\node[visible on=<2->] at (2,0) {\includegraphics[width=0.6\linewidth]{project2.png}};
+\node[visible on=<3->] at (4,0) {\includegraphics[width=0.6\linewidth]{project3.png}};
+\end{tikzpicture}
+}
+\frame{
+\frametitle{Turning R off}
+  When shutting down R and Rstudio it reminds you to save your work: \\ \vs
+  \includegraphics[width=0.5\linewidth]{shutdown.png}\\ \vs
+  In general you should \textbf{not} save your workspace unless the analysis takes a long time to reproduce.
+
+}
+
+\frame{
+\frametitle{Don't save your workspace}
+\includegraphics[width=0.9\linewidth]{cluttered-garage.jpg}
+}
+
+
+
+\frame{
+  \frametitle{Excercise 1}
+  \bi Create a new directory anywhere on your computer and names it "Classwork"
+  \item Open R-studio and create a new project called "classEx1" and associate it with the newly created directory
+  \item Install lubridate, stringr,geo, ggplot2, tidyr, dplyr and gridExtra if you haven't done so already
+  \item Create a new script named 'Ex1.R'
+  \item Look at the help page for 'sum', 'mean' and 'sd'
+  \item Read in the minke whale data using the "import dataset" menu
+  \item Write a script that calculates the sum, mean and standard deviation of the stomach.weight of the minke whales
+\ei
+}
+
+\section{A bit of R--programming}
+
+
+
+\begin{frame}[fragile]
+\frametitle{if sentences}
+\bi It is often so that we would like some parts of our code to run only if some condition is fulfilled
+\vs
+\item We use \texttt{if} sentences for that
+\vs
+\item When setting up the conditions the operators come in handy
+\ei
+
+<<eval=FALSE>>=
+if(condition){
+  ## this runs if the condition(s) are fulfilled
+}
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{if sentences - example}
+<<eval=FALSE>>=
+x <- 10
+## check if x is greater than 0
+if(x>0){
+    print('x is positive')
+}
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{if and else sentences}
+\bi Sometimes we would like to check for more than one condition
+\vs
+\item We use a combination of \texttt{if} and \texttt{else} sentences for that
+\ei
+<<eval=FALSE>>=
+if(condition_1){
+  ## this runs if condition 1 is fulfilled,
+  ## then we skip the else-sentences below
+} else if(condition_2){
+  ## this runs if condition 2 is fulfilled,
+  ## then we skip the else-sentence below
+} else{
+  ## this runs of neither condition 1 or 2 are fulfilled
+}
+@
+
+\end{frame}
+
+
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{if - else sentences - example}
+<<eval=FALSE>>=
+x <- 10
+
+## check if x > 10
+if(x>10){
+    print('x is greater than 10')
+} else if(x>=0){
+    print('x is less than 10 but greater than or equal to 0')
+} else {
+  print('x is negative')
+}
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{ifelse sentences}
+\bi It is often so that we only have two conditions
+\vs
+\item We use \texttt{ifelse} sentences for these cases
+\ei
+
+<<eval=FALSE>>=
+ifelse(condition,
+       'this runs if the condition is fulfilled',
+       'this runs if the condition is not fulfilled')
+@
+
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{ifelse sentences - example}
+Replace NA's from data
+<<eval=FALSE>>=
+x <- c(1,2,3,NA,4,5)
+## find all missing entries and replace them
+x <- ifelse(is.na(x),0,x)
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{for-loop}
+\bi We use a \texttt{for}-loop if we need some part of our code to run more than one time and we know how often it sould run
+\vs
+\item We use an index/counter that counts how often we enter the loop
+\vs
+\item We try to avoid \texttt{for}-loops because they are rather slow
+\vs
+\item There are several commands in R that help us to avoid for-loops - see the end of the slides
+\ei
+<<eval=FALSE>>=
+for(index in vector){
+  ## This code runs as often as the length of the vector
+}
+@
+
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+\frametitle{while-loop}
+\bi While-loops are similar to for-loops
+\vs
+\item We use a \texttt{while}-loop if we need some part of our code to run more than one time but we dont know how often it sould run
+\vs
+\item The loop runs while the condition stated is fulfilled
+\ei
+<<eval=FALSE>>=
+while(condition){
+  ## This code runs while the condition(s) are fulfilled
+}
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Loops, examples}
+<<eval=FALSE>>=
+## find the number of entries in the data
+n <- nrow(minke)
+
+## calculate the mean length old fashion way
+ML <- 0
+for(i in 1:n){
+  ML <- ML + dat$length[i]
+}
+ML <- ML/n
+@
+
+\end{frame}
+
+
+
+\frame{
+\frametitle{User--defined functions in R}
+\bi Even though there are a great number of built in functions/commands/methods in R we sometimes need to write our own functions
+\vs
+\item We use \texttt{function} for that
+\vs
+\item We can write a name of a built in function in the console to to get the code behind it
+\vs
+\item We can take the code and change it as we please
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+\frametitle{function}
+\bi A function has a name, takes arguments/settings and returns an object
+\vs
+\item Object within the function are local within the function
+\vs
+\item Objects the function returns can be of any type
+\ei
+<<eval=FALSE>>=
+nameOfFunction <- function(argument1, argument2, ... ){
+  ## The code of the function
+  return(object)
+}
+
+@
+
+Note that you can name your function whatever you want
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{function}
+<<echo=FALSE>>=
+rm(x)
+@
+
+<<>>=
+add1 <- function(x){
+  x <- x + 1
+  return(x)
+}
+
+add1(10)
+x
+@
+
+\end{frame}
+
+
+
+
+\frame{
+\frametitle{Class excercise 2}
+
+\bi Read in the minke whale data
+\vs
+\item Define a function that calculates the condition factor of a whale using the formula:
+$$C = 100*(W/L^3)$$
+\item Use the function to calculate the condition factor for all whales that were weighed
+\vs
+\item Investigate the distribution of the condition factor
+\vs
+\item Assign classification to all whales with body condition less than 0.8 'Malnourished', for 0.8 and above assign "OK" (hint use ifelse)
+\vs
+\item Impute the weight for those whales that were not weighed
+\ei
+
+}
+
+
+
+
+
+
+\end{document}

@@ -1,0 +1,315 @@
+% SLIDES - brug denne linie
+\documentclass[mathserif]{beamer} % options: gray
+
+% HANDOUTS - brug denne linie
+%\documentclass[handout,mathserif]{beamer} % options: gray
+
+\usetheme{CambridgeUS} %sidebar
+\usecolortheme{dolphin}
+
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
+\usepackage[T1]{fontenc}
+%\usepackage[icelandic]{babel}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{bm}
+\usepackage{tipx}
+\usepackage{marvosym}
+%\usepackage{subfigure}
+\usepackage{pgfpages}
+\usepackage{multirow}
+\usepackage{color}
+
+\usepackage{tikz,makecell}
+\usetikzlibrary{arrows,decorations.pathmorphing,decorations.footprints,
+fadings,calc,trees,mindmap,shadows,decorations.text,patterns,positioning,shapes,matrix,fit}
+\input{Day01/graphical_settings}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+% hvis man vil har eg. 4 slides på en side
+% \pgfpagesuselayout{4 on 1}[a4paper,border shrink = 5mm, landscape]
+
+\definecolor{lgrey}{RGB}{245,245,245}
+\setbeamercolor{block body}{fg=black,bg=lgrey}
+\definecolor{Red}{rgb}{0.9,0,0.1}
+\definecolor{lblue}{rgb}{0.0,0.5,0.6}
+\DeclareMathOperator{\var}{Var}
+\DeclareMathOperator{\cov}{Cov}      % Covariance
+\DeclareMathOperator{\bcov}{\cov}    % Covariance (as used in the GLM book)
+\DeclareMathOperator{\mcov}{C}       % multi dimensional covariance
+\DeclareMathOperator{\dis}{D}        % dispersion matrix
+\DeclareMathOperator{\acfest}{C}     % estimate of the autocovariance function
+\DeclareMathOperator{\e}{E}          % mean
+\DeclareMathOperator{\mean}{\e}      % mean (as used in the GLM book)
+\DeclareMathOperator{\cor}{Cor}      % correlation
+\DeclareMathOperator{\diag}{diag}    % diagonal-matrix
+\DeclareMathOperator{\rang}{rank}    % matrix-rank
+\DeclareMathOperator{\for}{for}    % for
+\DeclareMathOperator{\FOp}{F}        % forward shift operator
+\DeclareMathOperator{\SOp}{S}        % sum operator
+\DeclareMathOperator{\HOp}{H}        % arbitrary operator
+\DeclareMathOperator{\Real}{Re}      % real-part
+\DeclareMathOperator{\Imag}{Im}      % imaginary-part
+\DeclareMathOperator*{\member}{\in}  % belongs to or is an element in
+\DeclareMathOperator{\msea}{MSE1}    % Mean Square Error 1
+\DeclareMathOperator{\mseb}{MSE2}    % Mean Square Error 2
+\DeclareMathOperator{\sse}{SSE}      % Sum of Squared Errors
+\DeclareMathOperator{\ssb}{SSB}      % Sum of Squared Blocks
+\DeclareMathOperator{\sst}{SST}      % Sum of Squared Treatments
+\DeclareMathOperator{\adj}{adj}      % Just guessing...
+
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\bi}{\begin{itemize}\item}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\eq}[1]{\begin{equation} #1 \end{equation}}
+\newcommand{\ea}[1]{\begin{eqnarray} #1 \end{eqnarray}}
+\newcommand{\vs}{\vspace{2mm}}
+
+\definecolor{Red}{rgb}{0.9,0,0.1}
+
+\title[Fitting models]{Fitting models}
+
+\author[Bjarki\&Einar]{Bjarki Þór Elvarsson and Einar Hjörleifsson}
+\date{} % beskidt .. men det virker
+\institute[MRI]{Marine Research Institute}
+\beamertemplatenavigationsymbolsempty % fjerner pdf-indhold, til hvis der bare skal printes slides ud
+\AtBeginSection[]{
+\begin{frame}<beamer>
+   \frametitle{Overview}
+   \tableofcontents[currentsection]
+ \end{frame}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<echo=FALSE, warning=FALSE, message=FALSE>>=
+library(ggplot2)
+library(plyr)
+library(dplyr)
+minke <- read.csv2('data/minke.csv')
+@
+\frame{
+\titlepage
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\frame{
+\frametitle{Linear models}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\bi A linear model is a model that can be written as:
+$$ y = a+ b*x_1 + c*x_2 + \ldots $$
+where $y$ is the predicted value, $x_1, x_2, \ldots$ the input variables and $a$ and $b$ the parameters
+\item In statistics the goal is often to relate $y$, i.e. the observations, and the independent variables ($x_i$-s)
+\item This can be done using linear regression
+\ei
+\end{column}
+\begin{column}{0.5\linewidth}
+<<echo=FALSE,warning=FALSE,message=FALSE>>=
+
+x <- seq(0,10,by=0.01)
+y <- rnorm(100)*0.5 + x
+qplot(x,y) + geom_line(data=data.frame(y=x,x=x), col='red',lwd=2)
+@
+\end{column}
+\end{columns}
+}
+
+
+
+\frame{
+\frametitle{Simple model fitting}
+\bi In essence regression analysis is simply the calculation of a slope parameter and the intercept. 
+\vs
+\item Observations, however, are often noisy which is often written as:
+$$ Y_i = \alpha + \beta X_i + \epsilon_i$$ 
+where $\epsilon_i$ denotes the difference between observations and predictions
+\vs
+\item The goal with regression is to find minimize this difference to produce more accurate predictions of the observations, i.e. find $\alpha$ and $\beta$ such that 
+$$ \sum_i(Y_i-\alpha - \beta X_i)^2 $$
+is as small as possible
+\ei
+}
+
+\frame{
+\frametitle{Length weight relationship}
+\bi Now we want to predict the weights for fish that were not weighed, using linear regression
+\vs
+\item Often one sees the length weight relationship charaterised as:
+$$W = a*L^b$$
+\item Now this is a non-linear relationship (if $b\neq 1$) but is easy to linearise using $\log$:
+$$\log(W) = \log(a)+ b*\log(L)$$
+
+\ei
+
+}
+
+
+\begin{frame}[fragile]
+\frametitle{Let's play a bit}
+<<eval=FALSE>>=
+wlFun <- function(dat,a,b){
+  return(list(p=ggplot(dat,aes(log(length),log(ungutted))) + 
+                geom_point() + 
+                geom_abline(intercept=log(a),slope=b)+
+                ylim(c(0,10)) + xlim(c(0,10)),
+              ss=sum((log(dat$ungutted) - log(a) - 
+                        b*log(dat$length))^2)))
+}
+ fish %>% filter(!is.na(weight)) %>% wlFun(exp(0),0)
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Estimate using R}
+R has linear regression by default, invoked using "lm"
+<<>>=
+fit <- lm(log(weight)~log(length),data=minke)
+summary(fit)
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Estimate using R}
+One can add other variables into the regression fairly easily:
+<<>>=
+fit <- lm(log(weight)~log(length) + sex,data=minke)
+summary(fit)
+@
+
+\end{frame}
+
+
+
+\frame{
+\frametitle{Non-linear model fitting}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\bi Now say we want to fit a growth curve to our minke whale data
+\vs 
+\item Typically this would by a Von Bertalanffy growth curve of the form:
+$$ l = L_{\infty}(1-e^{-k(a-t_0)})$$
+\vs
+\item How do we do this in R?
+\ei
+
+\end{column}
+\begin{column}{0.5\linewidth}
+<<echo=FALSE,message=FALSE,warning=FALSE,fig.width=5,fig.height=4>>=
+
+ggplot(minke,aes(age,length)) + geom_point() + theme_bw() + ylab('Length') + xlab('Age')
+@
+\end{column}
+\end{columns}
+
+}
+
+\frame{
+\frametitle{What do we want to do exactly?}
+\bi Again we want to find the best fitting curve through the datapoints, although now we want estimate a more arbitrary function
+\vs
+\item This means that we want to "draw" a line that minimized on average the distance to all data points, i.e. find x that solves
+$$\textup{min}_{\textbf{x}} \left(\sum_{i} (l_i - \textup{VonB}(\textbf{x},a(i)))^2\right)$$
+\vs
+\item In the Von B function there are three parameters, $L_\infty$, $k$ and $t_0$ that can be adjusted so the task here is to find values of these three parameters such that the above sum is minimized
+\ei
+
+}
+
+\begin{frame}[fragile]
+\frametitle{In R:}
+<<>>=
+age.data <- filter(minke,!is.na(age))
+minke.vonB.par <- 
+  nls(length~Linf*(1-exp(-K*(age-t0))),
+      data=age.data, start=list(Linf=1100, K=0.1, t0=-1))
+minke.vonB.par
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Formulas in nls}
+<<eval=FALSE>>=
+  nls(length~Linf*(1-exp(-K*(age-t0))),
+      data=age.data, start=list(Linf=1100, K=0.1, t0=-1))
+
+@
+
+\bi Formulas in R typically look for variables in the data, in this case the minke whale dataset.
+\vs
+\item If a variable is not in the data, such as variables "Linf", "K" and "t0", they are assumed to be parameters that need to be estimated
+\vs
+\item Starting values are given in the input as "start". If not given the function may converge to a wrong minima or not at all.
+\ei
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Confidence intervals}
+Recall that a 95\% confidence interval represents the potential range of the data, i.e. one can not reject the hypothesis that the parameter estimate is within the range. Confidence intervals can be computed using the following command:
+<<>>=
+confint(minke.vonB.par)
+@
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Plotting the VonB estimate}
+First define a Von B function:
+<<>>=
+vonB <- function(linf,k,a,t0){
+  gr <- linf * (1 - exp(-k * (a-t0)))
+  return(gr)
+}
+@
+Then calculate the average length for each age
+<<>>=
+x <- coefficients(minke.vonB.par) ## get the coefficients
+age <- seq(1,50,by=1/12) ## age by month
+pred.length <- vonB(x[1],x[2],age,x[3])
+pred.dat <- ## create a data table
+  data.frame(age=age,length=pred.length)
+@
+
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.9]
+\frametitle{And plot:}
+
+<<fig.width=5,fig.height=3,warning=FALSE,message=FALSE>>=
+ggplot(minke,aes(age,length)) + geom_point() + 
+  geom_line(data=pred.dat) +   
+  theme_bw() + ylab('Length') + xlab('Age') 
+@
+
+
+\end{frame}
+
+\frame{
+\frametitle{In class excercise}
+Using a sample species from the DATRAS CA table:
+\bi Estimate the length - weight relationship
+\vs
+\item Estimate the Von Bertalanffy curve
+\vs
+\item Estimate the maturity ogive
+\vs
+\item Plot the results
+\ei
+
+}
+
+
+\end{document}
