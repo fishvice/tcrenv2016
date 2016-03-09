@@ -69,17 +69,17 @@ ___
 
 * [The source document](adhoc/shapefiles.Rmd)
 
-#### [Nice catch colours](Multispecies_IGFS_DATRAS_maps.html)
+#### [Nice catch colours](adhoc/Multispecies_IGFS_DATRAS_maps.html)
 
-#### [The crayola survey](crayola_survey.html)
+#### [The crayola survey](adhoc/crayola_survey.html)
 
 * [The source document](adhoc/crayola_survey.Rmd)
 
-#### [FLR %>% dplyr %>% ggplot](flr.html)
+#### [FLR %>% dplyr %>% ggplot](adhoc/flr.html)
 
 * [The source document](adhoc/flr.Rmd)
 
-#### [Small date drill](datras_date_drill.html)
+#### [Small date drill](adhoc/datras_date_drill.html)
 
 * [The source document](adhoc/datras_date_drill.Rmd)
 

@@ -1,0 +1,26 @@
+---
+title: "Minke whale data from 2003--2007 survey"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Minke data: http://www.hafro.is/~bthe/minke.csv
+Contains the follow fields:
+
+* **whale.id**: Unique identifier for the whale
+* **date.caught**: the date when the whales was caught
+* **lat**: latitude
+* **lon**: longitude
+* **area**: Derived from location (North/South)
+* **length**: length of the whale
+* **weight**: weight of the whale
+* **age**: age of the whale
+* **sex**: Male or Female
+* **maturity**: maturity status of the whale
+* **stomach.volume**: volume (in liters) of the stomach content
+* **stomach.weight**: weight of the stomach content
+* **year**: the year when the whale was caught

@@ -1,0 +1,42 @@
+---
+output: html_document
+---
+
+## Icelandic spring groundfish survey
+___
+
+#### Station table: http://www.hafro.is/~einarhj/data/tcrenv2016/Station.csv
+
+Contains the following fields:
+
+  * __id__: Unique station id
+  * __date1__: Haul start time
+  * __date2__: Haul end time
+  * __lon1__ and __lon2__: Longitude of haul start and end location
+  * __lat1__ and __lat2__: Latitude of haul start end end location
+  * __towlengt__: Tow length in nautical miles
+  * __depth__: Mean bottom depths in meters
+  * __temperature__: Bottom temperature
+  * __strata__: The strata of the tow
+
+#### Subsampling table: http://www.hafro.is/~einarhj/data/tcrenv2016/Subsampling.csv
+
+Contains information about the subsampling at each station:
+
+  * __id__: Station id
+  * __species__: Species code
+  * __n.counted__: Number of fish that were counted
+  * __n.measured__: Number of fish that were measured
+  * __n.total__: Total number of fish caught
+
+#### Length table: http://www.hafro.is/~einarhj/data/tcrenv2016/Length.csv
+
+Contains information about fish measured:
+
+  * __id__: Station id
+  * __species__: Species code
+  * __length__: Length class in centimeters
+  * __n__: Number of fish measured
+  * __sex__: Sex code, females (2) and males(1)
+  * __maturity__: Maturity code
+  
