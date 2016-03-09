@@ -1,0 +1,192 @@
+---
+title: "GES for BITS"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Preamble
+
+Considerable effort has been made in recent years to develop ecosystem indicators to assess the overall status of an ecosystem. These range from being fairly simple measures derived from observations, i.e. the large fish indicator (LFI), to more elaborate indicies such as the size of the spawning stock biomass.
+
+A general discussion for these indicators can be found [here](http://ec.europa.eu/environment/marine/good-environmental-status/index_en.htm) but in here we will focus on indicators for biodiversity as implemented in Greenstreet et. al (2015) but adapt for the Baltic sea. Estimates of growth and maturation parameters can potentially be read from FishBase. 
+
+# Suggested procedure
+
+Follow the procedure set out by [Greenstreet et. al (2015)](prj/11_Technical_Background_Biodiversity_and_Ecosystem_Services__marine__2015.pdf) and calculate the following metrics for Baltic region (BITS survey):
+
+* Biomass: $B_t=\sum_{s}\sum_{l}n_{slt}*c_sl^b_s$
+* Abundance: $A_t=\sum_s\sum_l n_{slt}$
+* Daily growth production: $P_t=\sum_s \sum_l n_{slt}*c_sl^b_s \frac{k_s}{356}(l_{\infty,s}-l)$
+* Daily production to biomass ratio: $$P_t/B_t$$
+* Large fish indicator: $$LFI_t = \frac{\sum_s \sum_{l>40cm}n_{slt}*c_sl^b_s}{B}$$
+* Mean weigth of fish: $$B_t/A_t$$
+* Species count (num distinct species codes): $$S_t$$
+* Margalef's species richness: $$S_{Marg,t} = \frac{S_t-1}{\log(A_t)}$$
+* Pielou's eveness: $$ J_t = \frac{-\sum_s (A_{s,t}/A_t) \log(A_{s,t}/A_t)}{\log(S_t)} $$
+* Hill's N1 diversity: $$^1N_t = -\sum_s (A_{s,t}/A_t) \log(A_{s,t}/A_t)$$
+* Hill's N2 dominance: $$^2N_t = \frac{1}{\sum_s (A_{s,t}/A_t)}$$
+* Mean ultimate bodylength$^*$: $$L_{\infty,t}=\frac{\sum_s A_{st} l_{\infty,s}}{A_t}$$
+* Mean growth coefficient$^*$: $$K_{t}=\frac{\sum_s A_{st} k_{s}}{A_t}$$
+
+where $s$ is species, $l$ is length, $t$ is year. 
+$^*$ These are optional metrics and will require looking for the missing variables in other sources such as FishBase. For calculation of the growth and maturation parameters you could restrict the analysis to the top 10 species in the survey in terms of biomass as these are generally not availble for the less common species.
+
+# Potential outcomes
+___
+
+```{r, echo = FALSE, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(rfishbase)
+source('../R/datras.R')
+source('../R/datras_tidy.R')
+```
+
+```{r, echo = FALSE, eval = FALSE}
+# Chunk not run in knitting
+#  get data from DATRAS (extremely slow!!!)
+years <- 2000:2015
+for(i in 1:length(years)) {
+  #print(years[i])
+  st <- get_datras(survey = 'BITS', year= years[i])
+  le <- get_datras(record = 'HL', survey = 'BITS',year=years[i])
+  if(i == 1) {
+    Station <- st
+    Length <- le
+  } else {
+    Station <- bind_rows(Station, st)
+    Length <- bind_rows(Lenght, le)
+  }
+}
+save(Station, Length, "../data/BITS.rda")
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+attach("../data/BITS.rda")
+# -------------------------------------------------------------
+# Read in survey data and tidy
+st <- tidy_station(Station) %>% tbl_df()
+species <-
+  read.csv("../data-raw/AphiaID_List.csv", stringsAsFactors = FALSE) %>%
+  tbl_df() %>% 
+  mutate(valid_aphia = as.integer(WoRMS_AphiaID_Valid)) %>% 
+  select(valid_aphia, latin = ScientificName_WoRMS)
+le <- tidy_length(Length, st) %>% 
+  tbl_df() %>% 
+  left_join(species) %>% 
+  select(id, latin, lngtclass, n)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+#  Chunk not run in the knitting, see next chunk
+
+# -------------------------------------------------------------
+# Get biological parameters from fishbase
+
+# create a unique species table
+bio <-
+  le %>% 
+  select(latin) %>%
+  distinct() %>%
+  # set the stage
+  mutate(n.space = str_count(latin, " "),
+         flatin = NA,
+         a = NA,
+         b = NA,
+         Loo = NA,
+         K = NA,
+         to = NA)
+
+# Fill the russian doll
+#  If you want to see what is going on try e.g.
+#    i <- 1
+#    and then start inside the loop and run step-by-step
+for (i in 1:length(bio$latin)) {
+  #print(paste(i, bio$latin[i]))
+  
+  # Validate name
+  flatin <- rfishbase::validate_names(bio$latin[i])
+  # only do if 1) species name more one word
+  #            2) species name is not NULL
+  #            3) If only one species returned as valid
+  if(bio$n.space[i] >= 1 & !is.null(flatin) & length(flatin) == 1) {
+    bio$flatin[i] <- flatin
+    
+    # Get the length weight parameters and take the median (could also take mean)
+    lw <- length_weight(bio$flatin[i]) %>% 
+      summarise(a = median(a, na.rm = TRUE),
+                b = median(b, na.rm = TRUE))
+    # sometimes get a dataframe with no values
+    if(nrow(lw) > 0) {
+      bio$a[i] <- lw$a
+      bio$b[i] <- lw$b
+    }
+    
+    # Get the vonB parameters
+    vonB <- popgrowth(bio$flatin[i]) %>% 
+      summarise(Loo = median(Loo, na.rm = TRUE),
+                K   = median(K,   na.rm = TRUE),
+                to  = median(to,  na.rm = TRUE))
+    if(nrow(vonB) > 0) {
+      bio$Loo[i] <- vonB$Loo
+      bio$K[i]   <- vonB$K
+      bio$to[i]  <- vonB$to
+    }
+  }
+}
+
+save(bio, file="../data/BITSparameters.rda")
+```
+
+```{r, echo = FALSE, message = FALSE}
+attach("../data/BITSparameters.rda")
+
+# Make assumption about a and b if not obtained from fishbase
+bio <-
+  bio %>% 
+  mutate(a = ifelse(is.na(a), 0.001, a),
+         b = ifelse(is.na(b),     3, b)) %>% 
+  select(-n.space, -flatin)
+
+# bundle all that is needed into one dataframe
+le <-
+  le %>% 
+  left_join(st %>% select(id, year)) %>% 
+  left_join(bio)
+
+GES <- 
+  le %>%
+  mutate(weight = a * lngtclass^b) %>% 
+  group_by(year,latin)%>%
+  mutate(As = sum(n,na.rm=TRUE)) %>%
+  ungroup() %>%
+  group_by(year) %>%
+  summarise(B = sum(n*weight,na.rm=TRUE),
+            A = sum(n,na.rm=TRUE),
+            P = sum(n*weight*(Loo-lngtclass)*K/365,na.rm=TRUE),
+            DP = P/B,
+            LFI = sum(ifelse(lngtclass>40,n*weight,0),na.rm=TRUE)/B,
+            MW = B/A,
+            S = length(unique(latin)),
+            Smarg = (S-1)/log(A),
+            N1 = -sum(As/A*log(As/A),na.rm=TRUE),
+            J = N1/log(S),
+            N2 = 1/sum(As/A,na.rm=TRUE),
+            L = sum(n*Loo,na.rm=TRUE)/A,
+            K = sum(n*K,na.rm=TRUE)/A)
+```
+
+```{r, echo=FALSE, message = FALSE}
+GES %>% 
+  gather(key = indicator, value = value, -year) %>% 
+  ggplot() +
+  geom_line(aes(year, value)) +
+  labs(x = NULL, y = NULL, title = "Indicators") +
+  facet_wrap(~ indicator, scale = "free_y")
+```

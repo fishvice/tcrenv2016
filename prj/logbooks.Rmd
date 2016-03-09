@@ -1,0 +1,176 @@
+---
+title: "Working with logbook data"
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE, 
+                      fig.width = 7.5,
+                      fig.height = 4.5,
+                      fig.show = "hold",
+                      collapse = TRUE)
+options(digits = 3, dplyr.print_min = 5, dplyr.print_max = 5)
+```
+
+## Preamble
+___
+
+Here we will work with typical logbook data, here only limited to bottom trawls. The data are a subset of the Icelandic loogbook database, here only covering __"fish"__ bottom trawl data from two years, 1995 and 2010. The data are stored in two tables with the following fields:
+
+__logbook_station__: Contains information about each fishing operation
+
+* __id__: Unique fishing operation id
+* __date__: The date of the fishing operation
+* __lon__: Mean longitudinal haul position
+* __lat__: Mean latitudinal haul position
+* __depth__: Mean tow/bottom depth in meters
+* __towtime__: Tow duration in minutes
+
+__logbook_catch__: Contains information about the catch composition (no subsampling, no detail length measurements)
+
+* __id__: Fishing operation id
+* __species__: Native icelandic species code
+* __catch__: Catch in kilograms
+
+We want to end with some analysis that show the distribution of total effort, total catch and catches by some selected species, e.g. by ICES statistical rectangle. And more importantly via some finer arbritrary rectangle size.
+
+## Suggested procedure
+___
+
+* Read in two logbook datatables
+    * The station table -  see our `sharepoint`: http://community.ices.dk/TrainingCourses/tcrenv/2014%20Meeting%20docs/data-raw/logbook_station.csv
+    * The catch table (no subsamples here) - see our `sharpoint`: http://community.ices.dk/TrainingCourses/tcrenv/2014%20Meeting%20docs/data-raw/logbook_catch.csv
+
+ Calculate some spatial effort and catch statistic following these steps:
+ 
+* Assign each tow (station) position to a spatial rectangle
+    - Hint: use the `d2ir`-function in the geo-package
+* Sum the effort (towtime) within each spatial rectangle
+* Obtain the central position of each spatial rectangle
+* Plot the results by rectangle
+*  To obtain a finer rectangle resolution repeat the calculation using the `d2mr`-function.
+* Modify the code you created above to calculate the catch distribution by rectangle for the:
+    - Total catch distribution
+    - Catch of some selected species
+
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+library(geo)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(maps)
+library(mapdata)
+source("../R/rsquare.R") # square_encode function
+iceland <- map_data("worldHires", region = "iceland")
+
+# You have to download data from sharepoint
+Station  <- read.csv("../data-raw/logbook_station.csv",
+                 stringsAsFactors = FALSE) %>% 
+  mutate(date = ymd(date))
+
+Catch <- read.csv("../data-raw/logbook_catch.csv",
+                 stringsAsFactors = FALSE)
+
+st <- 
+  Station %>% 
+  mutate(year = year(date),
+         sq = geo::d2ir(lat, lon)) %>% 
+  group_by(year, sq) %>% 
+  summarize(effort = sum(towtime, na.rm = TRUE)) %>%  
+  mutate(lon = geo::ir2d(sq)$lon,     # get the central position of
+         lat = geo::ir2d(sq)$lat)     #   the rectangle
+
+p <-
+  st %>% 
+  ggplot() +
+  theme_bw() +
+  geom_tile(aes(lon, lat, fill = effort/1e5)) +  # width a figures this out from the data
+  geom_polygon(data = iceland, aes(long, lat, group = group), fill = "grey") +
+  coord_quickmap() +
+  scale_x_continuous(name = NULL, breaks = NULL) +
+  scale_y_continuous(name = NULL, breaks = NULL) +
+  labs(fill = "Effort") +
+  facet_wrap(~ year)
+
+p + scale_fill_gradient2(low = "yellow", mid = "red",
+                         high = "black", midpoint = 5)
+
+# Finer scale
+width <- 0.25     # equivalent to 15 minutes on the longitude
+height <- 0.5 * width
+d <- 
+  Station %>% 
+  mutate(sq = square_encode(lon, lat, dx = width, dy=height),
+         year = year(date)) %>% 
+  group_by(year, sq) %>% 
+  summarize(effort = sum(towtime, na.rm = TRUE)) %>%
+  separate(sq, c("lon","lat"), sep = ":", convert = TRUE)
+
+d %>% 
+  filter(year == 2010) %>% 
+  ggplot() +
+  theme_bw() +
+  geom_tile(aes(lon, lat, fill = effort)) + 
+  geom_polygon(data = iceland, aes(long, lat, group = group), fill = "grey") +
+  coord_quickmap() +
+  scale_x_continuous(name = NULL, breaks = NULL) +
+  scale_y_continuous(name = NULL, breaks = NULL) +
+  labs(fill = "Effort") +
+  scale_fill_gradient2(low = "yellow", mid = "red",
+                         high = "black", midpoint = 50000)
+
+# Total Catch
+d <- 
+  Catch %>% 
+  group_by(id) %>% 
+  summarise(value = sum(catch)/1e3) %>% # in tonnes
+  right_join(Station) %>% 
+  mutate(sq = square_encode(lon, lat, dx = width, dy = height),
+         year = year(date)) %>% 
+  group_by(year, sq) %>% 
+  summarize(value = sum(value, na.rm = TRUE)) %>%  
+  separate(sq, c("lon","lat"), sep = ":", convert = TRUE)
+d %>% 
+  filter(year == 2010) %>% 
+  ggplot() +
+  theme_bw() +
+  geom_tile(aes(lon, lat, fill = value)) + 
+  geom_polygon(data = iceland, aes(long, lat, group = group), fill = "grey") +
+  coord_quickmap() +
+  scale_x_continuous(name = NULL, breaks = NULL) +
+  scale_y_continuous(name = NULL, breaks = NULL) +
+  labs(fill = "Catch") +
+  scale_fill_gradient2(low = "yellow", mid = "red",
+                         high = "black", midpoint = 1500)
+
+
+# Catch by species
+d <- 
+  Catch %>% 
+  group_by(id, species) %>% 
+  summarise(value = sum(catch)/1e3) %>% # in tonnes
+  ungroup() %>% 
+  right_join(Station) %>% 
+  mutate(sq = square_encode(lon, lat, dx = width, dy = height),
+         year = year(date)) %>% 
+  group_by(year, sq, species) %>% 
+  summarize(value = sum(value, na.rm = TRUE)) %>%
+  ungroup() %>% 
+  separate(sq, c("lon","lat"), sep = ":", convert = TRUE)
+
+d %>% 
+  filter(year == 2010, species == 22) %>% 
+  ggplot() +
+  theme_bw() +
+  geom_tile(aes(lon, lat, fill = value)) + 
+  geom_polygon(data = iceland, aes(long, lat, group = group), fill = "grey") +
+  coord_quickmap() +
+  scale_x_continuous(name = NULL, breaks = NULL) +
+  scale_y_continuous(name = NULL, breaks = NULL) +
+  labs(fill = "Catch22") +
+  scale_fill_gradient2(low = "yellow", mid = "red",
+                         high = "black", midpoint = 400)
+```
+

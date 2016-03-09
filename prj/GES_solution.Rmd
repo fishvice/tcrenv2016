@@ -1,0 +1,113 @@
+---
+title: "GES solution"
+author: "Bjarki Þór Elvarsson"
+date: "26 febrúar 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# The data
+```{r,eval=FALSE}
+library(dplyr)
+library(ggplot2)
+library(rfishbase)
+source('R/datras_augment.R')
+source('R/datras_tidy.R')
+species <-
+  read.csv("~/Dropbox/tcrenv2016/inst/datras/species_codes.csv", stringsAsFactors = FALSE) %>%
+  tbl_df()
+
+## get data from DATRAS (extremely slow!!!)
+st <- get_datras(survey = 'BITS',year=2000:2015)
+le <- get_datras(record = 'HL', survey = 'BITS',year=2000:2015)
+
+## clean up data 
+st <- tidy_station(st)
+le <- tidy_length(st = st,x = le,species = species) %>% tbl_df()
+
+```
+
+Use FishBase to find growth and length weight parameters:
+```{r,eval=FALSE}
+
+## find unique species names in the length data
+spec.bits <- unique(le$latin) %>%
+  na.omit()
+
+## a*L^b
+aLb <- data.frame(species = spec.bits,
+                  a = 0.001,
+                  b = 3)
+
+if(FALSE){
+  for(i in 1:length(spec.bits)){
+    tmp <- tryCatch(length_weight(spec.bits[i]),
+                    error = function(x) NULL)
+    if(!is.null(tmp)){
+      aLb[i,c('a','b')] <- 
+        tmp %>% 
+
+        select(a,b) %>%
+        na.omit() %>%
+                slice(1)
+    }
+  }
+}
+
+## Linf and K
+vonB <- data.frame(species = spec.bits,
+                   Loo = 100,
+                   K = 0.001)
+
+for(i in 1:length(spec.bits)){
+  print(i)
+    tmp <- tryCatch(popgrowth(spec.bits[i]),
+                  error = function(x) NULL)
+  if(!is.null(tmp)){
+    vonB[i,c('Loo','K')] <- 
+      tmp %>% 
+      select(Loo,K) %>%
+#      na.omit() %>%
+      slice(1)
+  }
+}
+
+```
+
+
+## 
+
+```{r,eval=FALSE}
+le.w <- 
+  le %>% 
+  left_join(aLb,by=c('latin'='species')) %>%
+  left_join(vonB,by=c('latin'='species')) %>%
+  mutate(weight = a*length^b*1e-3,
+         year = gsub('([0-9]+).+','\\1',id))
+
+GES <- 
+  le.w %>%
+  group_by(year,latin)%>%
+  mutate(As = sum(n,na.rm=TRUE)) %>%
+  ungroup() %>%
+  group_by(year) %>%
+  summarise(B=sum(n*weight,na.rm=TRUE),
+            A=sum(n,na.rm=TRUE),
+            P=sum(n*weight*(Loo-length)*K/365,na.rm=TRUE),
+            DP=P/B,
+            LFI=sum(ifelse(length>40,n*weight,0),na.rm=TRUE)/B,
+            MW = B/A,
+            S = length(unique(latin)),
+            Smarg = (S-1)/log(A),
+            N1 = - sum(As/A*log(As/A),na.rm=TRUE),
+            J = N1/log(S),
+            N2 = 1/sum(As/A,na.rm=TRUE),
+            L = sum(n*Loo,na.rm=TRUE)/A,
+            K = sum(n*K,na.rm=TRUE)/A)
+
+```
+

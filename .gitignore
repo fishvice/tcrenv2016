@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 *.html
+data-raw/logbook_station.csv
+data-raw/logbook_catch.csv

@@ -1,0 +1,15 @@
+---
+title: "Projects"
+author: "Einar Hjörleifsson"
+date: "31 January 2016"
+output: html_document
+---
+
+
+
+
+* ICES landings statistics
+* Calculating survey statistics from DATRAS data
+* Exploring ICES stock assessment summary statistics
+* Calculate Good Environment status from DATRAS data
+* ...

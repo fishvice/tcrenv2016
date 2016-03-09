@@ -1,0 +1,194 @@
+---
+title: "ICES landings statistics"
+output: html_document
+---
+
+## Preamble
+___
+
+ICES has been gathering and publishing fisheries landings statistics since 1904. Further information of the data source can be found at the [ICES Dataset Collection website](http://www.ices.dk/marine-data/dataset-collections/Pages/Fish-catch-and-stock-assessment.aspx). The principal data sources are stored in three separate zip-files covering different (and sometimes overlapping) periods.
+
+In this project use the [Historical Nominal Catches 1950-2010](http://www.ices.dk/marine-data/Documents/CatchStats/HistoricalLandings1950-2010.zip): Catches in FAO area 27 by country, species, area and year. Source: Eurostat/ICES database on catch statistics - ICES 2011, Copenhagen. Format: Archived dataset in .xls and .csv format. Version 30-11-2011.
+
+The species names are denoted in english. The english name is supposedly the same as in the [FAO ASFIS List of Species for Fishery Statistics Purposes](http://www.fao.org/fishery/collection/asfis/en). The latter has however additional names as well as standardized taxonomic codes.
+
+## Suggested procedure
+___
+
+* Import and tidy the Historical Nominal Catches 1950-2010 database
+* Import the FAO species code and join it with above
+* Merge the above with a provided lookutable that contains the standardized eurostat acronyms for ICES divisions
+* Do some exploratory exercise, e.g.:
+    - Summarise and plot annual total landings of selected species, countries or ICES divisions of interest.
+    - Calculating the mean landings (and some variance statistics?) in the last 10 years for each species and plot the derived statistics for the top 20 species. Select particular ICES divisions of interest and repeat the exercise.
+
+__Bonus__: Import and tidy the [ICES historical landings 1903-1949](http://www.ices.dk/marine-data/Documents/CatchStats/ICES1903-49.zip) and create a single data.frame of the landings statistics 1903-2010
+
+## Potential outcomes
+___
+
+```{r, message = FALSE, echo = FALSE}
+library(readxl)
+library(countrycode)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+#  Chunk not run
+# Download data and unzip:
+tmpzip <- tempfile()
+URL <- "http://www.ices.dk/marine-data/Documents/CatchStats/ICES1950-2010.zip"
+download.file(URL,tmpzip)
+tmpdir <- tempdir()
+unzip(tmpzip, exdir = tmpdir)
+ices19502010 <- read.csv(paste0(tmpdir,"/ICES_1950-2010.csv"),
+              stringsAsFactors = FALSE) %>%
+  tbl_df()
+
+URL <- "ftp://ftp.fao.org/FI/STAT/DATA/ASFIS_sp.zip"
+download.file(URL, tmpzip)
+unzip(tmpzip, exdir = tmpdir)
+asfis <- read.table(paste0(tmpdir,"/ASFIS_sp_Feb_2015.txt"),
+                    header = TRUE, sep = "\t", 
+                    stringsAsFactors = FALSE) %>% 
+  tbl_df()
+
+# For the bonus
+URL <- "http://www.ices.dk/marine-data/Documents/CatchStats/ICES1903-49.zip"
+download.file(URL,tmpzip)
+unzip(tmpzip, exdir = tmpdir)
+ices19031949 <- read.csv(paste0(tmpdir,"/1903-1949_Landings.csv"),
+                         stringsAsFactors = FALSE) %>% 
+  tbl_df()
+cntr19031949 <- read_excel(paste0(tmpdir,"/1903-1949_Landings.xlsx"),
+                   sheet = "Country_notes")
+names(cntr19031949) <- c("ccode", "country")
+save(ices19031949, ices19502010, asfis, cntr19031949, file = "../data/ices_landings.rda")
+```
+
+```{r, echo = FALSE}
+# instead of chunk above
+attach("../data/ices_landings.rda")
+```
+
+```{r, echo = FALSE, message = FALSE}
+# Tidy data
+d <- ices19502010
+names(d) <- tolower(names(d))
+d <- 
+  d %>% 
+  gather(key = year, value = landings, -(country:division), convert = TRUE) %>% 
+  mutate(year = as.integer(str_replace(year, "x", "")),
+         landings = ifelse(landings %in% "-", 0, landings),
+         landings = ifelse(landings %in% "<0.5", 0.25, landings),
+         landings = ifelse(landings %in% c(".",""), NA, landings),
+         landings = as.numeric(landings)) %>% 
+  filter(!is.na(landings)) %>% 
+  filter(landings != 0) %>% 
+  mutate(country = str_trim(country),
+         country = str_replace(country, "Channel Islands \\(ns\\)", "Channel Islands"),
+         country = str_replace(country, "Un. Sov. Soc. Rep.","Soviet Union"),
+         ccode = countrycode(country,"country.name","iso3c"),
+         ccode = ifelse(country == "UK - Eng+Wales+N.Irl.", "GBU", ccode),
+         ccode = ifelse(country == "UK - England & Wales", "GBE", ccode),
+         ccode = ifelse(country == "UK - Scotland", "GBS", ccode))
+
+# join with species code
+d <- 
+  d %>% 
+  left_join(asfis %>% select(species = English_name, scode=X3A_CODE), by = "species")
+# note that not all names in ices have a matching english name in asfis
+
+# join with standardized fishregion
+fishregion <- read.csv("~/Dropbox/tcrenv2016/data-raw/ices_fish_region_lookup.csv",
+                       stringsAsFactors = FALSE) %>% 
+  select(eurostat, ices19031949, ices19502010) %>% 
+  mutate(eurostat = str_replace(eurostat, "27_", ""))
+d <-
+  d %>% 
+  left_join(fishregion %>% select(-ices19031949), by = c("division" = "ices19502010"))
+
+ices.landings <- d
+
+# the bonus
+cntr19031949 <-
+  cntr19031949 %>% 
+  filter(!is.na(ccode) & !is.na(country)) %>% 
+  bind_rows(data_frame(ccode = "BEL", country = "Belgium")) %>% 
+  mutate(ccode = ifelse(ccode == "NDL","NLD",ccode),
+         country = str_replace(country, "Faroe Islands", "Faeroe Islands"))
+d <- 
+  ices19031949 %>% 
+  rename(ccode = Country,
+         species = FAO_Species_Name,
+         division = FAO_Area,
+         year = Year,
+         landings = Landings,
+         scode = FAO_Species_Code) %>% 
+  select(-Species.scientific.name) %>% 
+  mutate(ccode = str_trim(ccode),
+         landings = ifelse(landings %in% c(":", "-"), NA, landings),
+         landings = ifelse(landings %in% c("P","p"), 0.25, landings),
+         landings = as.numeric(landings)) %>% 
+  left_join(fishregion %>% select(-ices19502010), by = c("division" = "ices19031949")) %>% 
+  left_join(cntr19031949, by = "ccode")
+
+ices.landings <-
+  ices.landings %>% 
+  bind_rows(d) %>% 
+  filter(!is.na(landings) | landings > 0)
+
+# Some data exploration
+ices.landings %>% 
+  filter(scode == "MAC") %>% 
+  group_by(year) %>% 
+  summarise(landings = sum(landings, na.rm = TRUE)/1e3) %>% 
+  ggplot(aes(year, landings)) +
+  geom_point() +
+  geom_line() +
+  labs(x = NULL, y = NULL, title = "Total landings of Atlantic mackerel [kt]") +
+  expand_limits(y = 0)
+
+ices.landings %>% 
+  filter(scode == "COD", str_sub(eurostat,1,3) %in% c("5","5_A","5_B")) %>%
+  mutate(country = ifelse(ccode %in% c("ISL", "FRO"), country, "Útlendingar"),
+         div = ifelse(str_sub(eurostat,1,3) %in% "5_B","5B","5A")) %>% 
+  group_by(year, country, div) %>% 
+  summarise(landings = sum(landings, na.rm = TRUE)/1e3) %>% 
+  ggplot(aes(year, landings, fill = country)) +
+  geom_bar(stat = "identity") +
+  facet_grid(div ~ ., scale = "free_y") +
+  scale_fill_brewer(palette = "Set1") +
+  scale_x_continuous(breaks = seq(1900, 2010, by = 10)) +
+  theme(legend.position = "bottom") +
+  labs(x = NULL, y = NULL, fill = "Country", title = "Landings from area 5A and 5B")
+
+ices.landings %>% 
+  filter(year %in% 2001:2010,
+         !is.na(landings)) %>% 
+  group_by(species) %>% 
+  summarise(landings = sum(landings/1e3)/10) %>% 
+  arrange(-landings) %>% 
+  slice(1:20) %>% 
+  ggplot(aes(reorder(species, landings), landings)) +
+  geom_point() +
+  geom_linerange(aes(ymin = 0, ymax = landings)) +
+  coord_flip() +
+  labs(x = NULL, y = NULL, title = "Mean annual landings 2001:2010 - Top 20 species")
+
+ices.landings %>% 
+  filter(year %in% 2001:2010,
+         !is.na(landings)) %>% 
+  group_by(country) %>% 
+  summarise(landings = sum(landings/1e3)/10) %>% 
+  arrange(-landings) %>% 
+  #slice(1:20) %>% 
+  ggplot(aes(reorder(country, landings), landings)) +
+  geom_point() +
+  geom_linerange(aes(ymin = 0, ymax = landings)) +
+  coord_flip() +
+  labs(x = NULL, y = NULL, title = "Mean annual landings 2001:2010 - by nations")
+```

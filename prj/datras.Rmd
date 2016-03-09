@@ -1,0 +1,165 @@
+---
+title: "Drilling DATRAS"
+output: 
+  html_document: 
+    fig_height: 3
+    fig_width: 5
+---
+
+## Preamble
+___
+
+[DATRAS](http://ices.dk/marine-data/data-portals/Pages/DATRAS.aspx) is a key fisheries science database used the within the ICES community.
+
+It can be accessed either:
+
+* From [DATRAS download page]https://datras.ices.dk/Data_products/Download/Download_Data_public.aspx) as an exchange format.
+* Directly from within R via scripts that utilize the [DATRAS webservice](https://datras.ices.dk/WebServices/Webservices.aspx)
+
+Some minor background information:
+
+* Unique station identifier based on the following fields: year, quarter, country, ship, gear, stno, haulno
+* In the field `lngtcode` in the length distribution file (filetype "HL") the "." and "0" mean that the length in the field `lngtclass` are in units of millimeters.
+* The field `subfactor` is the raising factor
+
+## Suggested procedures
+___
+
+* Utilize the provided `get_datras` function (see R directory on sharepoint) to read in the datras station (record type HH) and length data (record type HL) for a particular survey, year and quarter..
+* Explore the data at your leasure.
+* Suggested exercise (what we covered [here](http://www.hafro.is/~einarhj/education/tcrenv2016/pre/more_grammar01.html) might help):
+    - Create a graphical map of the survey station location
+    - Calculate the station abundance and biomass of some species of your choice and generate a map displaying the statistics
+    - Calculate the number of station in each statistical rectangle, derive statistic of abundance and biomass and plot the results by statistical squares.
+    - Obtain data over more years and calculate trends in abundance and biomass.
+
+## Potential outcomes
+___
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(dplyr)
+library(tidyr)
+neamap <- 
+  map_data("worldHires") %>%  
+  filter((long > -50 & long < 50 & lat > 30) | region == "Greenland")
+source("../R/datras.R")
+source("../R/datras_tidy.R")
+species <-
+  read.csv("../data-raw/AphiaID_List.csv", stringsAsFactors = FALSE) %>%
+  tbl_df() %>% 
+  select(valid_aphia = WoRMS_AphiaID_Valid, latin = ScientificName_WoRMS) %>% 
+  mutate(valid_aphia = as.integer(valid_aphia))
+```
+
+```{r, eval = FALSE}
+# note this chunk not run - reduce traffic on datras
+Station <- get_datras("HH", survey = "NS-IBTS", year = 2014, quarter = 1) %>% 
+  tbl_df()
+Length <- get_datras("HL", survey = "NS-IBTS", year = 2014, quarter = 1) %>% 
+  tbl_df()
+save(Station, Length, file="../data/nsibts2014q1.rda")
+```
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+# ... instead of the above
+attach("../data/nsibts2014q1.rda")
+```
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+st <-
+  Station %>% 
+  tidy_station()
+le <- tidy_length(Length, st) %>% 
+  left_join(species) %>% 
+  select(id, latin, sex, length = lngtclass, n)
+
+background <- 
+  list(theme_bw(),
+       geom_polygon(data=neamap, aes(long, lat, group=group), fill = "grey90"),
+       scale_x_continuous(NULL,NULL),
+       scale_y_continuous(NULL,NULL))
+
+# station plot
+ggplot(st) +
+  background +
+  geom_segment(aes(shootlong, shootlat, xend=haullong, yend=haullat), col = "red") +
+  coord_quickmap(range(st$shootlong), range(st$shootlat)) +
+  labs(title = "NS-IBTS 2014, quarter 1")
+
+# Calculate catch per haul
+d <-
+  le %>% 
+  filter(latin %in% "Gadus morhua") %>% 
+  mutate(wt = n * 0.01 * length^3) %>% 
+  group_by(id) %>% 
+  summarise(n = sum(n),
+            b = sum(wt))
+d2 <-
+  st %>% select(id, shootlong, shootlat, statrec) %>% 
+  left_join(d) %>% 
+  mutate(n = ifelse(is.na(n), 0, n),             # if station is zero
+         b = ifelse(is.na(b), 0, b)/1000)        # in kilos
+ggplot(d2) +
+  background +
+  geom_point(aes(shootlong, shootlat, size = n), col = "red", alpha = 0.2) +
+  scale_size_area(max_size = 10, breaks = c(0, 10, 50, 100, 200)) +
+  coord_quickmap(range(d2$shootlong),range(d2$shootlat)) +
+  labs(size = "n/haul", title = "NIBS 2014 Q1: Gadus morhua")
+
+ggplot(d2) +
+  background +
+  geom_point(aes(shootlong, shootlat, size = b), col = "red", alpha = 0.2) +
+  scale_size_area(max_size = 10, breaks = c(0, 10, 50, 100, 200))+
+  coord_quickmap(range(d2$shootlong),range(d2$shootlat)) +
+  labs(size = "kg/haul", title = "NIBS 2014 Q1: Gadus morhua")
+
+ggplot(d2) +
+  background +
+  geom_point(aes(shootlong, shootlat, size = b/n), col = "red", alpha = 0.2) +
+  scale_size_area(max_size = 10, breaks = c(0, 1, 2, 4, 8)) +
+  geom_text(aes(shootlong, shootlat, label = round(n,0)), size = 2) +
+  coord_quickmap(range(d2$shootlong),range(d2$shootlat)) +
+  labs(size = "mean wgt", title = "NIBS 2014 Q1: Gadus morhua")
+
+
+# Mean abundance in statistical rectangels
+x <- d2 %>% 
+  group_by(statrec) %>% 
+  summarise(count = n(),
+            n = mean(n),
+            b = mean(b)) %>% 
+  mutate(lon = geo::ir2d(statrec)$lon,
+         lat = geo::ir2d(statrec)$lat)
+
+ggplot(x) +
+  geom_tile(aes(lon, lat, fill = n)) +
+  background +
+  geom_text(aes(lon, lat, label = round(n,0)), size = 2) +
+  geom_point(data = d2, aes(shootlong, shootlat), col = "blue", size = 0.05) +
+  scale_fill_continuous(low = "yellow", high = "red") +
+  coord_quickmap(range(x$lon), range(x$lat)) +
+  labs(fill = "n/rect", title = "NIBS 2014 Q1: Gadus morhua") +
+  theme(legend.position = c(0.87,0.23))
+
+
+x <- 
+le %>% 
+  filter(latin %in% "Gadus morhua") %>% 
+  mutate(wt = n * 0.01 * length^3) %>% 
+  group_by(length) %>% 
+  summarise(n = sum(n),
+            b = sum(wt)/1000) %>% 
+  gather(key = variable, value = value, -length)
+
+
+x %>% 
+  ggplot() +
+  theme_bw() +
+  geom_area(aes(length, y = value, ymax = value, ymin = 0), fill = "grey") +
+  facet_grid(variable ~ .) +
+  labs(x = "Length [cm]", y = NULL, title = "Gadus morhua: numbers and mass")
+```
+

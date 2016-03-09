@@ -1,0 +1,43 @@
+---
+title: "ICES stock assessment summaries"
+output: html_document
+---
+
+## Preamble
+___
+
+The ICES ecosystem advice is based on assessment results that are presented in stock assessment standard graphs and data tables. Data and plots are available in ICES Stock assessment Database. One can access and download data and graphs for each stock from the [ICES stock assessment graphs page](http://standardgraphs.ices.dk/stockList.aspx)
+
+In addition, ICES has provided a [webservice](http://standardgraphs.ices.dk/webservices.aspx) so that one can access the data via a programmable code. A set of [R-functions](../R/standard_graphs.R) have for convenience been generated to make it easy to get the data into R.
+
+To get an overview of the available summary data one can do:
+```{r}
+devtools::install_github("ICES-dk/rICES")
+library(rICES)
+ss <- getSummaryTable()
+Nggplot(ss, aes(Year, F)) + geom_point(size = 0.1, alpha = 0.1)
+icod <- ss %>% 
+  filter(STOCKID == "cod-iceg")
+```
+
+
+
+
+
+Annually ICES gives advice on ...
+
+
+
+Get list of stock names available in year 2015 and create a loop to get all the stock summary data from ices.dk via the [ICES standard graph webservice API](http://standardgraphs.ices.dk/standardgraphswebservices.asmx):
+```{r, eval = FALSE}
+stocks <- wices::get_list_stock(year = 2015) %>% 
+  filter(Status == "Published",
+         !FishStockName %in% c("lin-icel","tur-nsea"),
+         SpeciesName != "Mallotus villosus")
+
+rby <- NULL
+for (i in c(1:nrow(stocks))) {
+  x <- wices::get_summary_table(stocks$FishStockName[i], year = 2015)
+  rby <- bind_rows(rby,x)
+}
+```

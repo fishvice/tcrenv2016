@@ -1,0 +1,159 @@
+---
+title: "Drilling euostat"
+output: html_document
+---
+
+## Preamble
+___
+
+[Eurostat](http://ec.europa.eu/eurostat) contains wealth of informations, including statistics on [Fisheries](http://ec.europa.eu/eurostat/statistics-explained/index.php/Fishery_statistics), such as fleet capacity and catch by different nations.
+
+A specific R-package, [eurostat](http://ropengov.github.io/r/2015/05/01/eurostat-package-examples) has been developed which allows one to access the database directly from within R.
+
+## Suggested procedure
+___
+
+* Import the fleet ("fish_fleet") and catch tables ("fish_ca_main") using the function `get_eurostat`.
+    - For the fleet table, decode the column "vessize" by using the function `label_eurostat`.
+    - For the catch table, decode the column "species" by using the function `label_eurostat`.
+* Try to repeat some of the analysis presented in [Fisheries statistics](http://ec.europa.eu/eurostat/statistics-explained/index.php/Fishery_statistics).
+* Explore the data further at your leasure. E.g.
+    - Analyse the changes in the fleet capacity over time by different nations
+    - Analyse the changes in catch over time by different nations
+    - Create some spatial plots (by country) of some statistics of interest
+    - Calculate some index of fleet capacity in relation to the catch
+    - ...
+
+
+## Potential outcomes
+___
+
+
+
+```{r, message = FALSE, echo = FALSE}
+library(eurostat)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+# note this chunk not run - reduce traffic on eurostat
+Fleet <- get_eurostat("fish_fleet")
+Catch <- get_eurostat("fish_ca_main")
+save(Fleet, Catch, file = "data/eurostat.rda")
+```
+
+```{r, echo = FALSE}
+#  instead of the above
+attach("../data/eurostat.rda")
+attach("../data/eumap.rda") # Einar: Have to find how obtained
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+fleet <- 
+  Fleet %>% 
+  mutate(vessize = as.character(vessize),
+         code = label_eurostat(vessize, "vessize"),
+         unit = as.character(unit),
+         geo = as.character(geo),
+         year = year(time),
+         values = values/1e3) %>% 
+  tbl_df() %>% 
+  filter(nchar(geo) == 2,
+         #!is.na(values),
+         !str_detect(vessize, "_PC"))
+fleetcode <- 
+  fleet %>% 
+  select(vessize, code) %>% 
+  distinct() 
+
+catch <- 
+  Catch %>% 
+  mutate(species = as.character(species),
+         Species = label_eurostat(species, "species"),
+         fishreg = as.character(fishreg),
+         unit = as.character(unit),
+         geo = as.character(geo),
+         year = year(time),
+         values = values/1e3) %>% 
+  tbl_df() %>% 
+  filter(nchar(geo) == 2)
+speciescode <- 
+  catch %>% 
+  select(species, Species) %>% 
+  distinct() 
+
+fleet %>% 
+  filter(unit == "GT",
+         year == 2012,
+         !is.na(values)) %>% 
+  ggplot(aes(reorder(geo, values), values)) +
+  geom_point() +
+  coord_flip() +
+  labs(x = NULL, y = NULL, title = "2012: Total fleet tonnage [thousands]")
+
+fleet %>% 
+  filter(unit == "KW",
+         year == 2012,
+         !is.na(values)) %>% 
+  ggplot(aes(reorder(geo, values), values)) +
+  geom_point() +
+  coord_flip() +
+  labs(x = NULL, y = NULL, title = "2012: Total kilowatt")
+
+fleet %>% 
+  filter(unit == "NR",
+         year == 2012,
+         !is.na(values)) %>% 
+  ggplot(aes(reorder(geo, values), values)) +
+  geom_point() +
+  coord_flip() +
+  labs(x = NULL, y = NULL, title = "2012: Total number")
+
+fleet %>% 
+  filter(vessize %in% c("T00")) %>% 
+  group_by(geo) %>% 
+  mutate(values = values/values[year == 2012]) %>% 
+  ggplot() +
+  geom_line(aes(year, values, colour = geo)) +
+  geom_smooth(aes(year, values)) +
+  facet_wrap(~ unit, scale = "free_y") +
+  labs(x = NULL, y = NULL, title = "Development of fleet capacity")
+
+
+gt <- fleet %>% 
+  filter(year == 2010,
+         vessize %in% c("T00"),
+         unit == "KW")
+gt %>% 
+  ggplot(aes(map_id = geo)) +
+  geom_map(aes(fill = values), map = eumap) +
+  expand_limits(x = eumap$long, y = eumap$lat) +
+  scale_fill_continuous(low = "yellow", high = "red") +
+  labs(x = NULL, y = NULL, fill = NULL, title = "Fleet capacity: Kilowatts [thousands]")
+
+ca <- 
+  catch %>% 
+  filter(species == "F00",
+         fishreg == 0, 
+         year == 2010)
+ca %>% 
+  ggplot(aes(map_id = geo)) +
+  geom_map(aes(fill = values), map = eumap) +
+  expand_limits(x = eumap$long, y = eumap$lat) +
+  scale_fill_continuous(low = "yellow", high = "red") +
+  labs(x = NULL, y = NULL, fill = NULL, title = "Total catch [thousand tonnes]")
+
+ca %>% select(geo, catch = values) %>% 
+  left_join(gt %>% select(geo, kw = values)) %>% 
+  mutate(cpkw = catch/kw) %>% 
+  ggplot(aes(map_id = geo)) +
+  geom_map(aes(fill = cpkw), map = eumap) +
+  expand_limits(x = eumap$long, y = eumap$lat) +
+  scale_fill_continuous(low = "yellow", high = "red") +
+  labs(x = NULL, y = NULL, fill = NULL, title = "Catch per 1000 kilowatts")
+```
+

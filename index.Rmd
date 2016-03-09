@@ -1,9 +1,7 @@
 ---
 title: "TCRENV 2016"
 author: "ICES Training Course in the R ENVironment"
-output: 
-  html_document: 
-    css: pre/styles/moa.css
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 __Time__: 20160229 10:00 - 20160304 15:00
 
 __Location__:
-```{r, fig.width = 9, fig.height = 3, message = FALSE}
+```{r, fig.width = 9, fig.height = 3, message = FALSE, echo=FALSE}
 library(leaflet)
 content <- paste(sep = "<br/>",
   "<b><a href='http://www.ices.dk'>ICES</a></b>",
@@ -30,34 +28,67 @@ leaflet() %>%
 ```
 
 ### Presentation
+___
 
-#### [Preambles]
+#### Preambles
+
+* Presentation by ICES secretariat are located on the sharepoint
 
 #### [Introduction to R and RStudio](pre/r-r-studio.pdf)
 
-[Rscript](pre/r-r-studio.R)
+* [Rscript](pre/r-r-studio.R)
 
 #### [Getting started with ggplot2](pre/ggplot_gettingstarted.html)
 
-[The source document](pre/ggplot_gettingstarted.Rmd)
+* [The source document](pre/ggplot_gettingstarted.Rmd)
 
 #### [Reproducable research](pre/r-markdown.pdf)
 
-[(Markdown example)](pre/r-markdown-example.Rmd)
+* [Markdown example](pre/r-markdown-example.Rmd)
 
 #### [Getting data into R](pre/r-data.pdf)
 
-[(R-script)](pre/r-data.R)
+* [R-script](pre/r-data.R)
 
 #### [Getting started with dplyr](pre/r-dplyr.pdf)
 
-[(Rscript)](pre/r-dplyr.R)
+* [Rscript](pre/r-dplyr.R)
 
-#### [Applied data and graph grammar 1](pre/more_grammar01.html)
+#### [Applied data and graph grammar](pre/more_grammar01.html)
 
-[The source document](pre/more_grammar01.Rmd)
+* [The source document](pre/more_grammar01.Rmd)
 
-### Potential projects (not all links yet active)
+#### [Fitting models](pre/r-models.pdf)
+
+* [R-scripts](pre/r-models.R)
+
+### Ad-hoc stuff
+___
+
+#### [Getting shapfiles into R](adhoc/shapefiles.html)
+
+* [The source document](adhoc/shapefiles.Rmd)
+
+#### [Nice catch colours](Multispecies_IGFS_DATRAS_maps.html)
+
+#### [The crayola survey](crayola_survey.html)
+
+* [The source document](adhoc/crayola_survey.Rmd)
+
+#### [FLR %>% dplyr %>% ggplot](flr.html)
+
+* [The source document](adhoc/flr.Rmd)
+
+#### [Small date drill](datras_date_drill.html)
+
+* [The source document](adhoc/datras_date_drill.Rmd)
+
+#### [Generating a package](adhoc/rpackage_generation.html)
+
+* [The source document](adhoc/rpackage_generation.Rmd)
+
+### Potential projects
+___
 
 #### [DATRAS drills](prj/datras.html)
 
@@ -74,28 +105,11 @@ leaflet() %>%
 #### Your own data
 
 ### Overview of some "native" data used
+___
 
 #### [Icelandic spring groundfish survey](data_smb.html)
 
 #### [Minke whales in Icelandic waters](data_minke.html)
 
 
-### Some ad-hoc stuff
 
-#### [Getting shapfiles into R](adhoc/shapefiles.html)
-
-[The source document](adhoc/shapefiles.Rmd)
-
-#### [Nice catch colours](Multispecies_IGFS_DATRAS_maps.html)
-
-#### [The crayola survey](crayola_survey.html)
-
-[The source document](adhoc/crayola_survey.Rmd)
-
-#### [FLR %>% dplyr %>% ggplot](flr.html)
-
-[The source document](adhoc/flr.Rmd)
-
-#### [Small date drill](datras_date_drill.html)
-
-[The source document](adhoc/datras_date_drill.Rmd)
