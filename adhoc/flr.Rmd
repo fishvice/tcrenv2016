@@ -4,27 +4,34 @@ output: html_document
 ---
 
 ```{r, message = FALSE}
-library(FLCore)
+library(reshape2)
 library(dplyr)
 library(ggplot2)
-attach("data/assstock_results.Rdata")
+attach("../data/assstock_results.Rdata")
 ls(2)
-slotNames(ass.stock)
-ca <- as.data.frame(catch.n(ass.stock)) %>% 
+class(ass.stock)
+ca <- melt(ass.stock@catch.n@.Data) %>% 
   tbl_df()
 glimpse(ca)
-ggplot(ca, aes(year, age, size = data)) + 
+ggplot(ca, aes(year, age, size = value)) + 
   theme_bw() +
   geom_point(alpha = 0.1) +
   scale_size_area(max_size = 20)
 
-wC <- as.data.frame(catch.wt(ass.stock)) %>% 
+wC <- melt(ass.stock@catch.wt@.Data) %>% 
   tbl_df() 
 glimpse(wC)
 wC %>% 
   mutate(yc=year - age) %>% 
-  ggplot(aes(year, data, group = age)) +
+  ggplot(aes(year, value, group = age)) +
   theme_bw() +
   geom_line() +
   geom_line(aes(group = yc), col = "grey")
-````
+```
+
+A useful function to turn all the slots into a dataframe:
+```{r}
+source("../R/flstock_to_rbya.R")
+d <- flstock_to_rbya(ass.stock)
+glimpse(d)
+```

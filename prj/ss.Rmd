@@ -3,41 +3,136 @@ title: "ICES stock assessment summaries"
 output: html_document
 ---
 
+A post-course project :-)
+
 ## Preamble
 ___
 
-The ICES ecosystem advice is based on assessment results that are presented in stock assessment standard graphs and data tables. Data and plots are available in ICES Stock assessment Database. One can access and download data and graphs for each stock from the [ICES stock assessment graphs page](http://standardgraphs.ices.dk/stockList.aspx)
+One of the backbone of ICES has been annual stock assessment and advice for miriads of stock. An overview of recent advisory documents can be found on the [ICES webpage](http://www.ices.dk/community/advisory-process/Pages/Latest-advice.aspx). The annual assessments have been compiled into a single worksheet (courtesy Martin Pastoors) found in the data-raw directory.
 
-In addition, ICES has provided a [webservice](http://standardgraphs.ices.dk/webservices.aspx) so that one can access the data via a programmable code. A set of [R-functions](../R/standard_graphs.R) have for convenience been generated to make it easy to get the data into R.
+For the purpose of this excercise the column of interest are:
 
-To get an overview of the available summary data one can do:
-```{r}
-devtools::install_github("ICES-dk/rICES")
-library(rICES)
-ss <- getSummaryTable()
-Nggplot(ss, aes(Year, F)) + geom_point(size = 0.1, alpha = 0.1)
-icod <- ss %>% 
-  filter(STOCKID == "cod-iceg")
+* __FishStock__: Name of the stock in ICES lingo
+* __Species__: Short name of the species
+* __Ecoregion__: The ecoregion that the stock falls under
+* __AssYear__: The year the assessment was conducted
+* __Year__: The year
+* __F__: Fishing mortality
+* __SSB__: The spawning stock biomass
+* __Recruitment__: The recruitment abundance
+
+## Suggested procedure
+___
+
+* Read in the data from the [excel document](../data-raw/ICES Assessment Summary database 20160303.xlsx)
+* Plot the mortality trend by different ecoregions
+* Plot some measure of the mean and variability of the terminal mortality estimates (that would be fishing mortality in year 2014) by e.g. ecoregion and/or some selected species.
+* Tor each stock, calculate the ration of the contemporary fishing mortality and the fishing mortality estimated in the last assessment. Plot the retrospective patterns for some some selected species.
+* Calculate a summary measure for each stock of the mean bias and the cv's based on the above statistic. Plot the results.
+* Explore further at your leasure.
+
+## Potential outcome
+___
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+d <- read_excel("../data-raw/ICES\ Assessment\ Summary\ database 20160303.xlsx",
+                sheet = "DATA") %>% 
+  mutate(Ecoregion = ifelse(Ecoregion == "barents sea","Barents sea",Ecoregion))
+
+d %>% 
+  filter(AssYear %in% 2015) %>% 
+  ggplot(aes(Year, F)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth() +
+  geom_vline(xintercept = 2014) +
+  facet_wrap(~ Ecoregion) +
+  labs(x = NULL, y = NULL, title = "Development of mortality")
+````
+
+```{r message = FALSE, warning = FALSE, echo = FALSE, fig.height = 2.5}
+x <- d %>% 
+  filter(AssYear %in% 2015,
+         Year %in% 2014,
+         !is.na(F),
+         !is.na(Ecoregion))
+source("../R/boot_trials.R")
+x %>% 
+  group_by(Ecoregion) %>% 
+  summarise(bl = bootlower(F),
+            bm = bootmean(F),
+            bu = bootupper(F),
+            n = n()) %>% 
+  ggplot(aes(reorder(Ecoregion, bm), bm)) +
+  geom_point(col = "red") +
+  geom_linerange(aes(ymin = bl, ymax = bu), col = "red") +
+  geom_text(aes(y = 0, label = n)) +
+  coord_flip() +
+  expand_limits(y = 0) +
+  labs(x = NULL, y = NULL, title = "Mortality 2014 - bootrap mean and ci")
 ```
 
+```{r message = FALSE, warning = FALSE, echo = FALSE}
+stock2015 <- unique(d$FishStock[d$AssYear == 2015 & !is.na(d$F)])
+ass2015 <-
+  d %>% 
+  filter(FishStock %in% stock2015,
+         AssYear == 2015) %>% 
+  select(Year, FishStock,
+         F2015 = F,
+         B2015 = SSB,
+         R2015 = Recruitment)
+x <- 
+  d %>% 
+  filter(FishStock %in% stock2015) %>% 
+  left_join(ass2015) %>% 
+  mutate(Frel = F/F2015,
+         Brel = SSB/B2015,
+         Rrel = Recruitment/R2015) %>% 
+  select(Year, AssYear, FishStock, Species, Frel, Brel, Rrel) %>% 
+  gather(key=variable,value=value, Frel:Rrel) %>% 
+  filter(!is.infinite(value)) %>% 
+  filter(!is.na(value)) %>%
+  filter(value < 5)  # assume error
 
+x %>% 
+  filter(variable == "Frel",
+         Species == "cod") %>% 
+  ggplot(aes(Year, value, group = AssYear)) +
+  geom_line() +
+  facet_wrap(~ FishStock) +
+  labs(x = NULL, y = "Fcontemporary/F2015",
+       title = "Cod: mortality retrospective patterns")
 
+x %>% 
+  filter(variable == "Frel",
+         Species == "sol") %>% 
+  ggplot(aes(Year, value, group = AssYear)) +
+  geom_line() +
+  facet_wrap(~ FishStock) +
+  labs(x = NULL, y = "Fcontemporary/F2015",
+       title = "Sole: mortality retrospective patterns")
 
+x2 <-
+  x %>% 
+  filter(Year == AssYear - 1,
+         variable == "Frel") %>% 
+  group_by(FishStock) %>% 
+  summarise(bias = mean(value),
+            cv = sd(value))
+x2 %>% 
+  ggplot(aes(reorder(FishStock, bias), bias)) +
+  geom_point() +
+  geom_hline(yintercept = 1) +
+  coord_flip() +
+  labs(x = NULL, y = NULL, title = "Mean bias in mortality")
+x2 %>% 
+  ggplot(aes(reorder(FishStock, cv), cv)) +
+  geom_point() +
+  coord_flip() +
+  labs(x = NULL, y = NULL, title = "Mean cv in mortality")
 
-Annually ICES gives advice on ...
-
-
-
-Get list of stock names available in year 2015 and create a loop to get all the stock summary data from ices.dk via the [ICES standard graph webservice API](http://standardgraphs.ices.dk/standardgraphswebservices.asmx):
-```{r, eval = FALSE}
-stocks <- wices::get_list_stock(year = 2015) %>% 
-  filter(Status == "Published",
-         !FishStockName %in% c("lin-icel","tur-nsea"),
-         SpeciesName != "Mallotus villosus")
-
-rby <- NULL
-for (i in c(1:nrow(stocks))) {
-  x <- wices::get_summary_table(stocks$FishStockName[i], year = 2015)
-  rby <- bind_rows(rby,x)
-}
 ```
