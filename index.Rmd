@@ -8,6 +8,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+### Out and in the open
+
+Hopefully all source material is found [here](https://github.com/fishvice/tcrenv2016). If not mail us.
+
 ### Time and location
 
 __Time__: 20160229 10:00 - 20160304 15:00
@@ -112,4 +116,10 @@ ___
 #### [Minke whales in Icelandic waters](data_minke.html)
 
 
+### Post-hoc stuff
+___
+
+Material here added after the course
+
+#### [Dplyr and databases](posthoc/databases.html)
 
