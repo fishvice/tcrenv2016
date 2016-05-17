@@ -1,8 +1,7 @@
 ---
 title: "Report of the training course in R environment"
-author: "Bjarki Þór Elvarsson and Einar Hjörleisson" 
-output: 
-  word_document
+author: "Bjarki Þór Elvarsson and Einar Hjörleisson"
+output: html_document
 ---
 
 # Summary
@@ -92,15 +91,14 @@ The above product allows anybody interest to make a full copy of the course, eit
 git clone https://github.com/fishvice/tcrenv2016.git
 ```
 
-During the development of the course, the ICES secretariat asked the instructures to consider the usage of BlueBridge Virtual Research Environment as a platform for the course. Very superficial exploration was made with respect to the usefulness of this platform and it was concluded that it most likely would not be any better than the approach as described above. In addition, because of the instructor's total unfamiliarity with the platform it would require some additional unwarranted investement.
+During the development of the course, the ICES secretariat asked the instructors to consider the usage of the BlueBridge Virtual Research Environment (BVRE) as a platform for the course. BVRE is all encompassing environment for collaborative work such as projects in a university course. Projects can import powerful modules or tools that allow a particular analysis. Similarly data can be imported through a set of fixed data import routines and made available to the projects participants. The BVRE is accessed through a browser and all the analysis is made on centralised servers. This approach therefore makes very little demands on the computer platform of the end user or available software, all that is required is a modern browser and a stable internet connection. Very superficial exploration was made with respect to the usefulness of this platform and it was concluded that it most likely would not be any better than the approach as described above. Although BVRE has an impressive feature it requires an additional investment and would add layer of confusion for the course participants. Although R is a available from within BVRE, its use is somewhat restricted. Notably it is assumed that most of the data handling is done through BVRE. In contrast, the course covered various ways of working with data with R from multiple sources. Additionally the benefit for the user is not obvious as the course participants are not likely to have access to the BRVE at their home institutions.  
 
-## Deliverance
+
+## Deliverables
 
 The major change from the planned schedule described above and the actual course deliverance was that the coverage of each topic, including practial assignments took longer than anticipated. This resulted in that the topics scheduled for Friday were more or less put on the back burner and were only covered with brief lectures without participants hands on training.
 
-Each day was split up into group discussion of the topics/assignments covered the previous day, introduction lectures of the day's topics followed by practical assignments. Emphasis was put on cooperative work and code sharing (including difficulties/stumbling blocks) among participants.
-
-TODO: Say something here about the ready made assignments, that some people worked on their own data, ad-hoc material ... with example links.
+Each day was split up into group discussion of the topics/assignments covered the previous day, introduction lectures of the day's topics followed by practical assignments. Emphasis was put on cooperative work and code sharing (including difficulties/stumbling blocks) among participants. The practical assignments were fairly diverse, ranging from simple summary statistics based on DATRAS dat, to maps of fishing intensity and collating landing statistics. In addition course participants were encouraged to work with their own data and problems using R. These included time series analysis of fish price, automatic cruise reports and biomass estimation of zoo plankton. 
 
 ## Lecturers
 
@@ -117,7 +115,7 @@ In the waining hour of the course a discussion focusing on what may have been ha
     - Documents and data were distributed by the instructors in any of three different spaces (web-access, sharepoint, github). It was recommended that if the course is tought again all material distributed via only one space. It should also be considered if course content could not be organized by the day covered.
 * Order and scope of the course material:
     - Data importing, checking, tidying and "mining" should be put upfront in the course.
-    - Question was raised if the usage of R-package development and version control (git) was outside the main scope of the course. If the course were to be trimmed the R-package development was considered to be the most obvious canditate to put on the chopping block. If version control was to be retained as a part of the course content, it was suggested that it is thought as a part of the 
+    - Question was raised if the usage of R-package development and version control (git) was outside the main scope of the course. If the course were to be trimmed the R-package development was considered to be the most obvious canditate to put on the chopping block. If version control was to be retained as a part of the course content, it was suggested that it is thought as a part of the assignments.
 
 
 # Annex 1: List of participants
